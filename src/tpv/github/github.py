@@ -4,7 +4,6 @@ import ConfigParser
 import re
 import itertools
 
-from metachao import aspect
 from metachao import classtree
 
 URL_BASE = 'https://api.github.com'
@@ -70,22 +69,27 @@ class GhResource(dict):
     def url_template(self):
         raise NotImplemented()
 
-    def __init__(self, parent, data = None, **kwargs):
+    def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
         self._parameters = kwargs
         for k, v in kwargs.iteritems():
             setattr(self, "_" + k, v)
 
         if data is None:
-            data = github_request("GET", self.url_template
-                                         .format(**kwargs).json())
+            url = self.url_template.format(**kwargs).json()
+            data = github_request("GET", url)
         self.update(data)
 
 
 class GhCollection(object):
 
-    list_url_template = None
-    list_key = None
+    @property
+    def list_url_template(self):
+        raise NotImplemented("Collection is not iterable.")
+
+    @property
+    def list_key(self):
+        raise NotImplemented("Collection is not iterable.")
 
     @property
     def get_url_template(self):
@@ -99,16 +103,17 @@ class GhCollection(object):
     def child_parameter(self):
         raise NotImplemented()
 
-    def __init__(self, parent, data = None, **kwargs):
+    @property
+    def add_url_template(self):
+        raise NotImplemented("Can't add to collection.")
+
+    def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
         self._parameters = kwargs
         for k, v in kwargs.iteritems():
             setattr(self, "_" + k, v)
 
     def _get_resources(self):
-        if self.list_url_template is None or self.list_key is None:
-            raise NotImplemented("Not iterable")
-
         url = self.list_url_template.format(**self._parameters)
         return github_request_paginated("GET", url)
 
@@ -146,12 +151,31 @@ class GhCollection(object):
         parameters = self._parameters
         parameters[self.child_parameter] = key
 
-        req = github_request("GET", self.get_url_template
-                                    .format(**parameters))
+        url = self.get_url_template.format(**parameters)
+        req = github_request("GET", url)
         if "200" not in req.headers["status"]:
             raise KeyError("Resource {} does not exist.".format(key))
 
         return self.child_class(self, data=req.json(), **parameters)
+
+    def __setitem__(self, key, parameters):
+        url = self.add_url_template.format(**self._parameters)
+        parameters[self.list_key] = key
+        req = github_request("POST", url,
+                             data=parameters)
+        if "201 Created" not in req.headers["status"]:
+            raise ValueError("Couldn't create {} object: {}"
+                             .format(self.child_class.__name__,
+                                     req.json()["message"]))
+
+    def __delitem__(self, key):
+        url = self.delete_url_template.format(**self._parameters)
+        req = github_request("DELETE", url)
+        if "201 Deleted" not in req.headers["status"]:
+            raise ValueError("Couldn't delete {} object: {}"
+                             .format(self.child_class.__name__,
+                                     req.json()["message"]))
+
 
 
 class GhIssue(GhResource):
@@ -172,13 +196,17 @@ class GhRepoIssues(GhCollection):
     child_class = GhIssue
     child_parameter = "number"
 
+    add_url_template = "/repos/{owner}/{repo}/issues"
+
     def __init__(self, parent):
         super(GhRepoIssues, self).__init__(parent, **parent._parameters)
 
     def _get_resources(self):
         urlpath = "/repos/{}/{}/issues".format(self._owner, self._repo)
-        return itertools.chain(github_request_paginated("GET", urlpath),
-                               github_request_paginated("GET", urlpath + "?state=closed"))
+        open_issues = github_request_paginated("GET", urlpath)
+        closed_issues = github_request_paginated("GET", urlpath +
+                                                 "?state=closed")
+        return itertools.chain(open_issues, closed_issues)
 
 
 @classtree.instantiate
@@ -202,19 +230,16 @@ class GhOwnerRepos(GhCollection):
     child_class = GhRepo
     child_parameter = "repo"
 
-    def __setitem__(self, repo, parameters):
+    @property
+    def add_url_template(self):
         if self._owner == config.get("github", "user"):
-            url = "/user/repos"
-        elif Github()["users"][self._owner]["type"] == "Organization":
-            url = "/orgs/{}/repos".format(self._owner)
-        else:
-            raise ValueError("Couldn't create repository: No permission.")
+            return "/user/repos"
+        elif self._parent._parent["users"][self._owner]["type"] == "Organization":
+            return "/orgs/{owner}/repos"
 
-        req = github_request("POST", url,
-                             data = merge_dicts(dict(name=repo), parameters))
-        if "201 Created" not in req.headers["status"]:
-            raise ValueError("Couldn't create repository: {}"
-                             .format(req.json()["message"]))
+        raise ValueError("Couldn't create/delete repository: No permission.")
+
+    delete_url_template = add_url_template
 
 
 class GhRepos(GhCollection):
