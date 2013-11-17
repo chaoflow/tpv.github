@@ -81,6 +81,78 @@ class GhResource(dict):
         self.update(data)
 
 
+class GhCollection(object):
+
+    list_url_template = None
+    list_key = None
+
+    @property
+    def get_url_template(self):
+        raise NotImplemented()
+
+    @property
+    def child_class(self):
+        raise NotImplemented()
+
+    @property
+    def child_parameter(self):
+        raise NotImplemented()
+
+    def __init__(self, parent, data = None, **kwargs):
+        self._parent = parent
+        self._parameters = kwargs
+        for k, v in kwargs.iteritems():
+            setattr(self, "_" + k, v)
+
+    def iterkeys(self):
+        if self.list_url_template is None or self.list_key is None:
+            raise NotImplemented("Not iterable")
+
+        url = self.list_url_template.format(**self._parameters)
+        resources = github_request_paginated("GET", url)
+        return (x[self.list_key] for x in resources)
+
+    __iter__ = iterkeys
+
+    def keys(self):
+        return list(self.iterkeys())
+
+    def itervalues(self):
+        return (x[1] for x in self.iteritems())
+
+    def values(self):
+        return list(self.itervalues())
+
+    def iteritems(self):
+        if self.list_url_template is None or self.list_key is None:
+            raise NotImplemented("Not iterable")
+
+        url = self.list_url_template.format(**self._parameters)
+        resources = github_request_paginated("GET", url)
+        return ((x[self.list_key],
+                 self.child_class(self,
+                                  data=x,
+                                  **merge_dicts(self._parameters,
+                                                {self.child_parameter:
+                                                 x[self.list_key]})))
+                for x in resources)
+
+    def items(self):
+        return list(self.iteritems())
+
+    def __getitem__(self, key):
+        """Return the GhResource object for `key` """
+        parameters = self._parameters
+        parameters[self.child_parameter] = key
+
+        req = github_request("GET", self.get_url_template
+                                    .format(**parameters))
+        if "200" not in req.headers["status"]:
+            raise KeyError("Resource {} does not exist.".format(key))
+
+        return self.child_class(self, data=req.json(), **parameters)
+
+
 class GhIssue(GhResource):
     """Issue of some repository
     """
@@ -161,56 +233,16 @@ class GhRepo(GhResource, classtree.Base):
 GhRepo["issues"] = GhRepoIssues
 
 
-class GhOwnerRepos(object):
+class GhOwnerRepos(GhCollection):
     """Github container for the repositories of owner `owner`
     """
 
-    def __init__(self, owner):
-        """
-        Arguments:
-        - `owner`: Github owner of the represented repositories
-        """
-        self._owner = owner
+    list_url_template = "/users/{owner}/repos"
+    list_key = "name"
 
-    def iterkeys(self):
-        """Enumerate repositories of the owner"""
-        repos = github_request_paginated("GET", "/users/{}/repos".format(self._owner))
-        return (x["name"] for x in repos)
-
-    __iter__ = iterkeys
-
-    def keys(self):
-        return list(self.iterkeys())
-
-    def itervalues(self):
-        return (x[1] for x in self.iteritems())
-
-    def values(self):
-        return list(self.itervalues())
-
-    def iteritems(self):
-        repos = github_request_paginated("GET", "/users/{}/repos".format(self._owner))
-        return ((x["name"], GhRepo(self,
-                                   owner=self._owner,
-                                   repo=x["name"],
-                                   data=x)) for x in repos)
-
-    def items(self):
-        return list(self.iteritems())
-
-    def __getitem__(self, repo):
-        """Return the GhRepo object for `repo`
-
-Check if `repo` is a valid repo first.
-        """
-        # Check if `repo` is a valid repo/user
-        req = github_request("GET", "/repos/{}/{}".format(self._owner, repo))
-        if "200" not in req.headers["status"]:
-            raise KeyError("Repo `{}/{}` does not exist."
-                           .format(self._owner, repo))
-
-        # Return GhOwnerRepos object
-        return GhRepo(self, owner=self._owner, repo=repo, data=req.json())
+    get_url_template = "/repos/{owner}/{repo}"
+    child_class = GhRepo
+    child_parameter = "repo"
 
     def __setitem__(self, repo, parameters):
         if self._owner == config.get("github", "user"):
@@ -227,23 +259,13 @@ Check if `repo` is a valid repo first.
                              .format(req.json()["message"]))
 
 
-class GhRepos(object):
+class GhRepos(GhCollection):
     """Github repository container
     """
-    def __init__(self, parent):
-        self._parent = parent
 
-    def __getitem__(self, owner):
-        """Return the GhOwnerRepos object for `owner`
-
-Check if `owner` is a valid owner first.
-        """
-        # Check if `owner` is a valid owner/user
-        if "200" not in github_request("HEAD", "/users/{}".format(owner)).headers["status"]:
-            raise KeyError("Owner '{}' does not exist.".format(owner))
-
-        # Return GhOwnerRepos object
-        return GhOwnerRepos(owner)
+    get_url_template = "/users/{owner}"
+    child_class = GhOwnerRepos
+    child_parameter = "owner"
 
 
 class GhUser(GhResource):
@@ -252,20 +274,13 @@ class GhUser(GhResource):
     url_template = "/users/{user}"
 
 
-class GhUsers(object):
+class GhUsers(GhCollection):
     """Users representation
     """
-    def __init__(self, parent):
-        self._parent = parent
 
-    def __getitem__(self, user):
-        """Return the GhUser object for `user`"""
-        # Check if `user` is valid
-        req = github_request("HEAD", "/users/{}".format(user))
-        if "200" not in req.headers["status"]:
-            raise KeyError("User '{}' does not exist.".format(user))
-
-        return GhUser(self, user=user, data=req.json())
+    get_url_template = "/users/{user}"
+    child_class = GhUser
+    child_parameter = "user"
 
 
 @classtree.instantiate
