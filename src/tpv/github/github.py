@@ -78,50 +78,14 @@ class GhResource(dict):
         if data is None:
             data = github_request("GET", self.url_template
                                          .format(**kwargs).json())
-        self.merge(data)
+        self.update(data)
 
 
-class GhIssue(object):
+class GhIssue(GhResource):
     """Issue of some repository
     """
-    def __init__(self, owner, repo, number, data=None):
-        """
-        Arguments:
-        - `owner`:
-        - `repo`:
-        - `number`:
-        - `data`:
-        """
-        self._owner = owner
-        self._repo = repo
-        self._number = number
 
-        if data is None:
-            data = github_request("GET", "/repos/{}/{}/issues/{}"
-                                         .format(owner, repo, number)).json()
-        self._data = data
-
-    def iterkeys(self):
-        return self._data.iterkeys()
-    __iter__ = iterkeys
-
-    def itervalues(self):
-        return self._data.itervalues()
-
-    def iteritems(self):
-        return self._data.iteritems()
-
-    def keys(self):
-        return self._data.keys()
-
-    def values(self):
-        return self._data.values()
-
-    def items(self):
-        return self._data.items()
-
-    def __getitem__(self, key):
-        return self._data[key]
+    url_template = "/repos/{owner}/{repo}/issues/{number}"
 
 
 class GhRepoIssues(object):
@@ -160,7 +124,11 @@ class GhRepoIssues(object):
         return list(self.itervalues())
 
     def iteritems(self):
-        return ((x["number"], GhIssue(self._owner, self._repo, x["number"], x))
+        return ((x["number"], GhIssue(self,
+                                      owner=self._owner,
+                                      repo=self._repo,
+                                      number=x["number"],
+                                      data=x))
                 for x in self._get_all_issues())
 
     def items(self):
@@ -176,31 +144,19 @@ class GhRepoIssues(object):
                            .format(number, self._owner, self._repo))
 
         # Return GhOwnerRepos object
-        return GhIssue(self._owner, self._repo, number, req.json())
+        return GhIssue(self,
+                       owner=self._owner,
+                       repo=self._repo,
+                       number=number,
+                       data=req.json())
 
 
 @classtree.instantiate
-class GhRepo(classtree.Base):
+class GhRepo(GhResource, classtree.Base):
     """Github repository representation
     """
 
-    def __init__(self, owner, repo, data=None):
-        """
-        Arguments:
-        - `owner`: owner of the repository
-        - `repo`: name of the repository
-        - `data`: json data of a get request on the url of the repository
-        """
-        self._owner = owner
-        self._repo = repo
-
-        if data is None:
-            data = github_request("GET", "/repos/{}/{}".format(owner, repo)).json()
-
-        self._data = data
-
-    def __getitem__(self, key):
-        return self._data[key]
+    url_template = "/repos/{owner}/{repo}"
 
 GhRepo["issues"] = GhRepoIssues
 
@@ -234,7 +190,10 @@ class GhOwnerRepos(object):
 
     def iteritems(self):
         repos = github_request_paginated("GET", "/users/{}/repos".format(self._owner))
-        return ((x["name"], GhRepo(self._owner, x["name"], x)) for x in repos)
+        return ((x["name"], GhRepo(self,
+                                   owner=self._owner,
+                                   repo=x["name"],
+                                   data=x)) for x in repos)
 
     def items(self):
         return list(self.iteritems())
@@ -251,7 +210,7 @@ Check if `repo` is a valid repo first.
                            .format(self._owner, repo))
 
         # Return GhOwnerRepos object
-        return GhRepo(self._owner, repo, req.json())
+        return GhRepo(self, owner=self._owner, repo=repo, data=req.json())
 
     def __setitem__(self, repo, parameters):
         if self._owner == config.get("github", "user"):
