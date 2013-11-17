@@ -72,6 +72,7 @@ class GhResource(dict):
 
     def __init__(self, parent, data = None, **kwargs):
         self._parent = parent
+        self._parameters = kwargs
         for k, v in kwargs.iteritems():
             setattr(self, "_" + k, v)
 
@@ -104,13 +105,15 @@ class GhCollection(object):
         for k, v in kwargs.iteritems():
             setattr(self, "_" + k, v)
 
-    def iterkeys(self):
+    def _get_resources(self):
         if self.list_url_template is None or self.list_key is None:
             raise NotImplemented("Not iterable")
 
         url = self.list_url_template.format(**self._parameters)
-        resources = github_request_paginated("GET", url)
-        return (x[self.list_key] for x in resources)
+        return github_request_paginated("GET", url)
+
+    def iterkeys(self):
+        return (x[self.list_key] for x in self._get_resources())
 
     __iter__ = iterkeys
 
@@ -124,21 +127,19 @@ class GhCollection(object):
         return list(self.itervalues())
 
     def iteritems(self):
-        if self.list_url_template is None or self.list_key is None:
-            raise NotImplemented("Not iterable")
-
-        url = self.list_url_template.format(**self._parameters)
-        resources = github_request_paginated("GET", url)
         return ((x[self.list_key],
                  self.child_class(self,
                                   data=x,
                                   **merge_dicts(self._parameters,
                                                 {self.child_parameter:
                                                  x[self.list_key]})))
-                for x in resources)
+                for x in self._get_resources())
 
     def items(self):
         return list(self.iteritems())
+
+    def __len__(self):
+        return len(self.keys())
 
     def __getitem__(self, key):
         """Return the GhResource object for `key` """
@@ -160,67 +161,24 @@ class GhIssue(GhResource):
     url_template = "/repos/{owner}/{repo}/issues/{number}"
 
 
-class GhRepoIssues(object):
+class GhRepoIssues(GhCollection):
     """The issues of some repository
     """
 
-    def __init__(self, parent):
-        """
-        Arguments:
-        - `ghrepo`: the parent GhRepo instance
-        """
-        self._owner = parent._owner
-        self._repo = parent._repo
+    list_url_template = "/repos/{owner}/{repo}/issues"
+    list_key = "number"
 
-    def _get_all_issues(self):
+    get_url_template = "/repos/{owner}/{repo}/issues/{number}"
+    child_class = GhIssue
+    child_parameter = "number"
+
+    def __init__(self, parent):
+        super(GhRepoIssues, self).__init__(parent, **parent._parameters)
+
+    def _get_resources(self):
         urlpath = "/repos/{}/{}/issues".format(self._owner, self._repo)
         return itertools.chain(github_request_paginated("GET", urlpath),
                                github_request_paginated("GET", urlpath + "?state=closed"))
-
-    def __len__(self):
-        return len(self.keys())
-
-    def iterkeys(self):
-        """Enumerate issues of the repository"""
-        return (x["number"] for x in self._get_all_issues())
-
-    __iter__ = iterkeys
-
-    def keys(self):
-        return list(self.iterkeys())
-
-    def itervalues(self):
-        return (x[1] for x in self.iteritems())
-
-    def values(self):
-        return list(self.itervalues())
-
-    def iteritems(self):
-        return ((x["number"], GhIssue(self,
-                                      owner=self._owner,
-                                      repo=self._repo,
-                                      number=x["number"],
-                                      data=x))
-                for x in self._get_all_issues())
-
-    def items(self):
-        return list(self.iteritems())
-
-    def __getitem__(self, number):
-        """Return the GhIssue object for issue number `number`"""
-        # Check if `repo` is a valid repo/user
-        req = github_request("GET", "/repos/{}/{}/issues/{}"
-                                    .format(self._owner, self._repo, number))
-        if "200" not in req.headers["status"]:
-            raise KeyError("Issue with number `{}` does not exist in repo `{}/{}`."
-                           .format(number, self._owner, self._repo))
-
-        # Return GhOwnerRepos object
-        return GhIssue(self,
-                       owner=self._owner,
-                       repo=self._repo,
-                       number=number,
-                       data=req.json())
 
 
 @classtree.instantiate
