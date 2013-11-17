@@ -287,13 +287,35 @@ Check if `owner` is a valid owner first.
         return GhOwnerRepos(owner)
 
 
+class GhUser(GhResource):
+    """User representation
+    """
+    url_template = "/users/{user}"
+
+
+class GhUsers(object):
+    """Users representation
+    """
+    def __init__(self, parent):
+        self._parent = parent
+
+    def __getitem__(self, user):
+        """Return the GhUser object for `user`"""
+        # Check if `user` is valid
+        req = github_request("HEAD", "/users/{}".format(user))
+        if "200" not in req.headers["status"]:
+            raise KeyError("User '{}' does not exist.".format(user))
+
+        return GhUser(self, user=user, data=req.json())
+
+
 @classtree.instantiate
 class Github(classtree.Base):
     def __getitem__(self, key):
         return github_request("GET", "").json()[key]
 
 Github["repos"] = GhRepos
-# Github["users"] = GhUsers
+Github["users"] = GhUsers
 
 
 
