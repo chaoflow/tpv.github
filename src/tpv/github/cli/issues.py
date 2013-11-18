@@ -2,6 +2,7 @@ import tpv.cli
 from ..github import Github, GhRepoIssues
 from plumbum.cmd import git
 
+
 def repo_type(repo_name):
     if repo_name is None:
         # fetch from git repo
@@ -20,6 +21,7 @@ def repo_type(repo_name):
         raise ValueError("Repository `{}` not found on github."
                          .format(repo_name))
 
+
 class Issues(tpv.cli.Command):
     """Manage issues
     """
@@ -27,10 +29,28 @@ class Issues(tpv.cli.Command):
         pass
 
 
+def make_function(name):
+    return lambda self, param: self.arguments.__setitem__(name, param)
+
+
+def add_argument_switches(parameter_names):
+    def deco(cls):
+        for name in parameter_names:
+            f = tpv.cli.switch("--" + name, argtype=str)(make_function(name))
+            setattr(cls, name, f)
+        return cls
+    return deco
+
+
+@add_argument_switches(["creator", "mentioned", "labels", "assignee"])
 class List(tpv.cli.Command):
     """List issues matching filter criteria
     """
     repo = tpv.cli.SwitchAttr("--repo", repo_type, help="The repository <owner>/<repo>")
+
+    def __init__(self, *args):
+        super(List, self).__init__(*args)
+        self.arguments = dict()
 
     def print_issue(self, issue):
         tmpl = u'''
@@ -47,7 +67,7 @@ Author: {user[login]}
         if self.repo == None:
             self.repo = repo_type(None)
 
-        for issue in self.repo["issues"].itervalues():
+        for no, issue in self.repo["issues"].search(**self.arguments):
             self.print_issue(issue)
 
 
