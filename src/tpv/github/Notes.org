@@ -1,0 +1,24 @@
+* Detailed/Summary representation
+In a list context github only returns a subset of all the data. This
+means that if we are requesting f.ex. a list of repositories, we
+already get partial data for each repository, which we would like to
+keep anyway, but mark it as being incomplete. 
+
+An aspect should have the task of keeping track whether a node has all
+the data and request full data on demand, when there is a KeyError or
+all data is enumerated.
+
+
+#+begin_src python
+def complete_data(self):
+  pass
+#+end_src
+* ❢ OAuth authorization
+we're using right now an authorization measure called personal access
+tokens. to be able to delete repositories, we need to use oauth
+authentication, this involves registering the application with github
+and receiving a client_id/_secret.
+
+http://developer.github.com/v3/oauth/
+
+** Deleting of repositories needs the delete_repo scope
