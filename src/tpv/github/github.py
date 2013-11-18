@@ -27,7 +27,13 @@ def merge_dicts(*dicts):
     return dict(itertools.chain(*(d.iteritems() for d in dicts)))
 
 
-def github_request(method, urlpath, data=None):
+def set_on_new_dict(basedict, key, value):
+    ret = basedict.copy()
+    ret[key] = value
+    return ret
+
+
+def github_request(method, urlpath, data=None, params=None):
     """Request `urlpath` from github using authentication from config
 
     Arguments:
@@ -38,12 +44,13 @@ def github_request(method, urlpath, data=None):
     return request(method, URL_BASE + urlpath,
                    auth=(config.get("github", "user"),
                          config.get("github", "token")),
-                   data=data)
+                   data=data,
+                   params=params)
 
 
-def github_request_paginated(method, urlpath):
+def github_request_paginated(method, urlpath, params=None):
     while urlpath:
-        req = github_request(method, urlpath)
+        req = github_request(method, urlpath, params=params)
         for elem in req.json():
             yield elem
 
@@ -76,9 +83,24 @@ class GhResource(dict):
             setattr(self, "_" + k, v)
 
         if data is None:
-            url = self.url_template.format(**kwargs).json()
-            data = github_request("GET", url)
-        self.update(data)
+            url = self.url_template.format(**kwargs)
+            data = github_request("GET", url).json()
+        super(GhResource, self).update(data)
+
+    def __setitem__(self, key, value):
+        self.update({key: value})
+
+    def update(self, data):
+        url = self.url_template.format(**self._parameters)
+        req = github_request("PATCH", url, data=data)
+        if '200 OK' not in req.headers["status"]:
+            raise ValueError("Couldn't update {} object: {}"
+                             .format(self.__class__.__name__,
+                                     req.json()["message"]))
+
+        # update the cached data with the live data from
+        # github. a detailed representation.
+        super(GhResource, self).update(req.json())
 
 
 class GhCollection(object):
@@ -113,9 +135,18 @@ class GhCollection(object):
         for k, v in kwargs.iteritems():
             setattr(self, "_" + k, v)
 
-    def _get_resources(self):
+    def search(self, **arguments):
+        return ((x[self.list_key],
+                 self.child_class(self,
+                                  data=x,
+                                  **set_on_new_dict(self._parameters,
+                                                    self.child_parameter,
+                                                    x[self.list_key])))
+                for x in self._get_resources(**arguments))
+
+    def _get_resources(self, **arguments):
         url = self.list_url_template.format(**self._parameters)
-        return github_request_paginated("GET", url)
+        return github_request_paginated("GET", url, params=arguments)
 
     def iterkeys(self):
         return (x[self.list_key] for x in self._get_resources())
@@ -132,13 +163,7 @@ class GhCollection(object):
         return list(self.itervalues())
 
     def iteritems(self):
-        return ((x[self.list_key],
-                 self.child_class(self,
-                                  data=x,
-                                  **merge_dicts(self._parameters,
-                                                {self.child_parameter:
-                                                 x[self.list_key]})))
-                for x in self._get_resources())
+        return self.search()
 
     def items(self):
         return list(self.iteritems())
@@ -171,7 +196,7 @@ class GhCollection(object):
     def __delitem__(self, key):
         url = self.delete_url_template.format(**self._parameters)
         req = github_request("DELETE", url)
-        if "201 Deleted" not in req.headers["status"]:
+        if "204 No Content" not in req.headers["status"]:
             raise ValueError("Couldn't delete {} object: {}"
                              .format(self.child_class.__name__,
                                      req.json()["message"]))
@@ -201,12 +226,19 @@ class GhRepoIssues(GhCollection):
     def __init__(self, parent):
         super(GhRepoIssues, self).__init__(parent, **parent._parameters)
 
-    def _get_resources(self):
+    def _get_resources(self, **arguments):
         urlpath = "/repos/{}/{}/issues".format(self._owner, self._repo)
-        open_issues = github_request_paginated("GET", urlpath)
-        closed_issues = github_request_paginated("GET", urlpath +
-                                                 "?state=closed")
-        return itertools.chain(open_issues, closed_issues)
+        if "state" in arguments:
+            return github_request_paginated("GET", urlpath, params=arguments)
+        else:
+            open_issues = github_request_paginated("GET", urlpath,
+                                                   params=arguments)
+
+            # due to asynchronicity we may not change the same object
+            arguments = set_on_new_dict(arguments, "state", "closed")
+            closed_issues = github_request_paginated("GET", urlpath,
+                                                     params=arguments)
+            return itertools.chain(open_issues, closed_issues)
 
 
 @classtree.instantiate
@@ -237,9 +269,9 @@ class GhOwnerRepos(GhCollection):
         elif self._parent._parent["users"][self._owner]["type"] == "Organization":
             return "/orgs/{owner}/repos"
 
-        raise ValueError("Couldn't create/delete repository: No permission.")
+        raise ValueError("Couldn't create repository: No permission.")
 
-    delete_url_template = add_url_template
+    delete_url_template = get_url_template
 
 
 class GhRepos(GhCollection):
