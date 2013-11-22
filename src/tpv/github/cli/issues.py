@@ -2,6 +2,8 @@ import tpv.cli
 from ..github import Github, GhRepoIssues
 from plumbum.cmd import git
 
+from aspects import stdout_to_pager
+
 
 def repo_type(repo_name):
     if repo_name is None:
@@ -43,13 +45,14 @@ def add_argument_switches(parameter_names):
 
 
 @add_argument_switches(["creator", "mentioned", "labels", "assignee"])
+@stdout_to_pager
 class List(tpv.cli.Command):
     """List issues matching filter criteria
     """
     repo = tpv.cli.SwitchAttr("--repo", repo_type, help="The repository <owner>/<repo>")
 
     def __init__(self, *args):
-        super(List, self).__init__(*args)
+        tpv.cli.Command.__init__(self, *args)
         self.arguments = dict()
 
     def print_issue(self, issue):

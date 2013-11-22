@@ -1,0 +1,27 @@
+import subprocess
+import sys
+
+from metachao import aspect
+import tpv.cli
+
+class stdout_to_pager(aspect.Aspect):
+    no_pager = tpv.cli.Flag("--no-pager", default=False)
+
+    @aspect.plumb
+    def __call__(_next, self, *args):
+        if self.no_pager:
+            return _next(*args)
+        else:
+            # reroute stdout to pager
+            less = subprocess.Popen(["less"], stdin=subprocess.PIPE, stdout=sys.stdout)
+            sys.stdout = less.stdin
+
+            try:
+                ret = _next(*args)
+                less.communicate()
+                return ret
+            except IOError as err:
+                # don't print an error on broken pipe
+                if err.errno != 32:
+                    raise err
+                return 0
