@@ -44,7 +44,15 @@ def add_argument_switches(parameter_names):
     return deco
 
 
-@add_argument_switches(["creator", "mentioned", "labels", "assignee"])
+@add_argument_switches(["milestone",
+                        "state",
+                        "assignee",
+                        "creator",
+                        "mentioned",
+                        "labels",
+                        "sort",
+                        "direction",
+                        "since"])
 @stdout_to_pager
 class List(tpv.cli.Command):
     """List issues matching filter criteria
