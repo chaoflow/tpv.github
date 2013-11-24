@@ -284,23 +284,32 @@ class GhRepos(GhCollection):
     child_parameter = "owner"
 
 
-class GhUser(GhResource):
+@classtree.instantiate
+class GhUser(GhResource, classtree.Base):
     """User representation
     """
-    url_template = "/users/{user}"
+    @property
+    def url_template(self):
+        return "/user" \
+            if self._owner == config.get('github', 'user') \
+            else "/users/{owner}"
+
+GhUser["repos"] = GhOwnerRepos
 
 
 class GhUsers(GhCollection):
     """Users representation
     """
 
-    get_url_template = "/users/{user}"
+    get_url_template = "/users/{owner}"
     child_class = GhUser
-    child_parameter = "user"
+    child_parameter = "owner"
 
 
 @classtree.instantiate
 class Github(classtree.Base):
+    _parameters = dict()
+
     def __getitem__(self, key):
         return github_request("GET", "").json()[key]
 
