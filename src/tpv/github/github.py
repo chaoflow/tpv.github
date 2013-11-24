@@ -132,7 +132,11 @@ class GhCollection(object):
     def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
         self._parameters = kwargs
-        for k, v in kwargs.iteritems():
+
+        if not self._parameters and self._parent:
+            self._parameters = self._parent._parameters
+
+        for k, v in self._parameters.iteritems():
             setattr(self, "_" + k, v)
 
     def search(self, **arguments):
@@ -222,9 +226,6 @@ class GhRepoIssues(GhCollection):
     child_parameter = "number"
 
     add_url_template = "/repos/{owner}/{repo}/issues"
-
-    def __init__(self, parent):
-        super(GhRepoIssues, self).__init__(parent, **parent._parameters)
 
     def _get_resources(self, **arguments):
         urlpath = "/repos/{}/{}/issues".format(self._owner, self._repo)
