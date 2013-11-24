@@ -51,6 +51,10 @@ setup(name='tpv.nix',
               'pr/list = tpv.github.cli.pullrequests:List',
               'pr/show = tpv.github.cli.pullrequests:Show',
               'pr/add = tpv.github.cli.pullrequests:Add',
+              'repos = tpv.github.cli.repos:Repos',
+              'repos/list = tpv.github.cli.repos:List',
+              'repos/add = tpv.github.cli.repos:Add',
+              'repos/update = tpv.github.cli.repos:Update'
           ],
       },
       )

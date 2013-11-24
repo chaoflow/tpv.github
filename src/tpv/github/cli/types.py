@@ -1,0 +1,35 @@
+from plumbum.cmd import git
+
+from ..github import Github
+from ..github import config
+
+
+def repo_type(repo_name):
+    if repo_name is None:
+        # fetch from git repo
+        url = git["config", "remote.origin.url"]().rstrip('\n')
+        if url.startswith("git@github.com:") and url.endswith(".git"):
+            repo_name = url[len("git@github.com:"):-len(".git")]
+        elif url.startswith("https://github.com/") and url.endswith(".git"):
+            repo_name = url[len("https://github.com/"):-len(".git")]
+        else:
+            raise ValueError("Remote origin is not from github.")
+
+    (owner, repo) = repo_name.split("/", 1)
+    try:
+        return Github()["repos"][owner][repo]
+    except KeyError:
+        raise ValueError("Repository `{}` not found on github."
+                         .format(repo_name))
+
+
+def owner_type(owner):
+    if owner is None:
+        # fetch from git owner
+        owner = config.get("github", "user")
+
+    try:
+        return Github()["users"][owner]
+    except KeyError:
+        raise ValueError("Owner `{}` not found on github."
+                         .format(owner))

@@ -4,6 +4,7 @@
 import tpv.cli
 import tpv.pkg_resources
 
+
 class Github(tpv.cli.Command):
     """Prototypical unified github command line.
 
