@@ -91,6 +91,9 @@ class GhResource(dict):
         self.update({key: value})
 
     def update(self, data):
+        data = set_on_new_dict(data,
+                               self._parent.list_key,
+                               self._parameters[self._parent.child_parameter])
         url = self.url_template.format(**self._parameters)
         req = github_request("PATCH", url, data=data)
         if '200 OK' not in req.headers["status"]:
@@ -177,8 +180,9 @@ class GhCollection(object):
 
     def __getitem__(self, key):
         """Return the GhResource object for `key` """
-        parameters = self._parameters
-        parameters[self.child_parameter] = key
+        parameters = set_on_new_dict(self._parameters,
+                                     self.child_parameter,
+                                     key)
 
         url = self.get_url_template.format(**parameters)
         req = github_request("GET", url)
@@ -189,7 +193,8 @@ class GhCollection(object):
 
     def __setitem__(self, key, parameters):
         url = self.add_url_template.format(**self._parameters)
-        parameters[self.list_key] = key
+        parameters = set_on_new_dict(parameters, self.list_key, key)
+
         req = github_request("POST", url,
                              data=parameters)
         if "201 Created" not in req.headers["status"]:
