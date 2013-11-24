@@ -1,4 +1,5 @@
 from requests import request
+import json
 import os
 import ConfigParser
 import re
@@ -40,11 +41,10 @@ def github_request(method, urlpath, data=None, params=None):
     - `method`: one of "HEAD", "GET", "POST", "PATCH", "DELETE"
     - `urlpath`: the path part of the request url, i.e. /users/coroa
     """
-
     return request(method, URL_BASE + urlpath,
                    auth=(config.get("github", "user"),
                          config.get("github", "token")),
-                   data=data,
+                   data=None if data is None else json.dumps(data),
                    params=params)
 
 
