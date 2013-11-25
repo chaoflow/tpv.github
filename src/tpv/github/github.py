@@ -24,6 +24,10 @@ config = ConfigParser.ConfigParser()
 config.read(os.path.join(os.environ['HOME'], ".ghconfig"))
 
 
+def authenticated_user():
+    return config.get("github", "user")
+
+
 def merge_dicts(*dicts):
     return dict(itertools.chain(*(d.iteritems() for d in dicts)))
 
@@ -270,7 +274,7 @@ class GhUserRepos(GhCollection):
 
     @property
     def add_url_template(self):
-        if self._user == config.get("github", "user"):
+        if self._user == authenticated_user():
             return "/user/repos"
         elif self._parent._parent["users"][self._user]["type"] == "Organization":
             return "/orgs/{user}/repos"
@@ -296,7 +300,7 @@ class GhUser(GhResource, classtree.Base):
     @property
     def url_template(self):
         return "/user" \
-            if self._user == config.get('github', 'user') \
+            if self._user == authenticated_user() \
             else "/users/{user}"
 
 GhUser["repos"] = GhUserRepos

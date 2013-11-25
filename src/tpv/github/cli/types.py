@@ -1,7 +1,6 @@
 from plumbum.cmd import git
 
-from ..github import Github
-from ..github import config
+from ..github import Github, authenticated_user
 
 
 def repo_type(repo_name):
@@ -25,8 +24,7 @@ def repo_type(repo_name):
 
 def user_type(user):
     if user is None:
-        # fetch from git user
-        user = config.get("github", "user")
+        user = authenticated_user()
 
     try:
         return Github()["users"][user]
