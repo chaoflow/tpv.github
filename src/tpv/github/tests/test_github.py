@@ -10,7 +10,7 @@ class TestGithub(unittest.TestCase):
     def test_repos(self):
         github = Github()
         nixosrepos = github["repos"]["nixos"]
-        self.assertTrue(isinstance(nixosrepos, GhOwnerRepos))
+        self.assertTrue(isinstance(nixosrepos, GhUserRepos))
 
         nixpkgsrepo = nixosrepos["nixpkgs"]
         self.assertTrue(isinstance(nixpkgsrepo, GhRepo))
@@ -18,14 +18,14 @@ class TestGithub(unittest.TestCase):
 
         issues = nixpkgsrepo["issues"]
         self.assertTrue(isinstance(issues, GhRepoIssues))
-        self.assertEqual(issues._owner, "nixos")
+        self.assertEqual(issues._user, "nixos")
         self.assertEqual(issues._repo, "nixpkgs")
 
-    def test_owner_repos_enumeration(self):
+    def test_user_repos_enumeration(self):
         nixosreponames = ("nixpkgs", "nixops", "nix", "hydra")
 
         nixosrepos = Github()["repos"]["nixos"]
-        self.assertTrue(isinstance(nixosrepos, GhOwnerRepos))
+        self.assertTrue(isinstance(nixosrepos, GhUserRepos))
         self.assertTrue(set(nixosrepos).issuperset(nixosreponames))
 
         values = nixosrepos.itervalues()

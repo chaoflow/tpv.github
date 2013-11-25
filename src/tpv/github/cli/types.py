@@ -15,21 +15,21 @@ def repo_type(repo_name):
         else:
             raise ValueError("Remote origin is not from github.")
 
-    (owner, repo) = repo_name.split("/", 1)
+    (user, repo) = repo_name.split("/", 1)
     try:
-        return Github()["repos"][owner][repo]
+        return Github()["repos"][user][repo]
     except KeyError:
         raise ValueError("Repository `{}` not found on github."
                          .format(repo_name))
 
 
-def owner_type(owner):
-    if owner is None:
-        # fetch from git owner
-        owner = config.get("github", "user")
+def user_type(user):
+    if user is None:
+        # fetch from git user
+        user = config.get("github", "user")
 
     try:
-        return Github()["users"][owner]
+        return Github()["users"][user]
     except KeyError:
-        raise ValueError("Owner `{}` not found on github."
-                         .format(owner))
+        raise ValueError("User `{}` not found on github."
+                         .format(user))

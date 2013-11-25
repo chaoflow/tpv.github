@@ -1,7 +1,7 @@
 import tpv.cli
 from plumbum.cmd import git
 
-from .types import owner_type, repo_type
+from .types import user_type, repo_type
 from aspects import stdout_to_pager
 
 
@@ -41,8 +41,8 @@ class Repos(tpv.cli.Command):
 class List(tpv.cli.Command):
     """List repos
     """
-    owner = tpv.cli.SwitchAttr("--owner", owner_type,
-                               help="The repository owner")
+    user = tpv.cli.SwitchAttr("--user", user_type,
+                               help="User owning the repository")
 
     def print_repo(self, repo):
         tmpl = u'''
@@ -60,10 +60,10 @@ Description: {description}
         print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m", **repo)
 
     def __call__(self):
-        if self.owner is None:
-            self.owner = owner_type(None)
+        if self.user is None:
+            self.user = user_type(None)
 
-        for name, repo in self.owner["repos"].iteritems():
+        for name, repo in self.user["repos"].iteritems():
             self.print_repo(repo)
 
 
@@ -90,21 +90,21 @@ Description: {description}
 class Add(tpv.cli.Command):
     """Add a new Repo
     """
-    owner = tpv.cli.SwitchAttr("--owner", owner_type,
-                               help="The repository owner")
+    user = tpv.cli.SwitchAttr("--user", user_type,
+                               help="User owning the repository")
 
     def __init__(self, *args, **kwargs):
         tpv.cli.Command.__init__(self, *args, **kwargs)
         self.arguments = dict()
 
     def __call__(self, name=None):
-        if self.owner is None:
-            self.owner = owner_type(None)
+        if self.user is None:
+            self.user = user_type(None)
 
         if name is None:
             name = git['rev-parse', '--show-toplevel']().strip().split('/')[-1]
 
-        self.owner["repos"][name] = self.arguments
+        self.user["repos"][name] = self.arguments
 
 
 @add_argument_switches([

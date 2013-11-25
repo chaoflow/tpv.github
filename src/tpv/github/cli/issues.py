@@ -37,7 +37,7 @@ def add_argument_switches(parameter_names):
 class List(tpv.cli.Command):
     """List issues matching filter criteria
     """
-    repo = tpv.cli.SwitchAttr("--repo", repo_type, help="The repository <owner>/<repo>")
+    repo = tpv.cli.SwitchAttr("--repo", repo_type, help="The repository <user>/<repo>")
 
     def __init__(self, *args):
         tpv.cli.Command.__init__(self, *args)

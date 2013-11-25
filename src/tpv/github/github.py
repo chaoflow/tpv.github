@@ -216,24 +216,24 @@ class GhIssue(GhResource):
     """Issue of some repository
     """
 
-    url_template = "/repos/{owner}/{repo}/issues/{number}"
+    url_template = "/repos/{user}/{repo}/issues/{number}"
 
 
 class GhRepoIssues(GhCollection):
     """The issues of some repository
     """
 
-    list_url_template = "/repos/{owner}/{repo}/issues"
+    list_url_template = "/repos/{user}/{repo}/issues"
     list_key = "number"
 
-    get_url_template = "/repos/{owner}/{repo}/issues/{number}"
+    get_url_template = "/repos/{user}/{repo}/issues/{number}"
     child_class = GhIssue
     child_parameter = "number"
 
-    add_url_template = "/repos/{owner}/{repo}/issues"
+    add_url_template = "/repos/{user}/{repo}/issues"
 
     def _get_resources(self, **arguments):
-        urlpath = "/repos/{}/{}/issues".format(self._owner, self._repo)
+        urlpath = "/repos/{}/{}/issues".format(self._user, self._repo)
         if "state" in arguments:
             return github_request_paginated("GET", urlpath, params=arguments)
         else:
@@ -252,28 +252,28 @@ class GhRepo(GhResource, classtree.Base):
     """Github repository representation
     """
 
-    url_template = "/repos/{owner}/{repo}"
+    url_template = "/repos/{user}/{repo}"
 
 GhRepo["issues"] = GhRepoIssues
 
 
-class GhOwnerRepos(GhCollection):
-    """Github container for the repositories of owner `owner`
+class GhUserRepos(GhCollection):
+    """Github container for the repositories of user `user`
     """
 
-    list_url_template = "/users/{owner}/repos"
+    list_url_template = "/users/{user}/repos"
     list_key = "name"
 
-    get_url_template = "/repos/{owner}/{repo}"
+    get_url_template = "/repos/{user}/{repo}"
     child_class = GhRepo
     child_parameter = "repo"
 
     @property
     def add_url_template(self):
-        if self._owner == config.get("github", "user"):
+        if self._user == config.get("github", "user"):
             return "/user/repos"
-        elif self._parent._parent["users"][self._owner]["type"] == "Organization":
-            return "/orgs/{owner}/repos"
+        elif self._parent._parent["users"][self._user]["type"] == "Organization":
+            return "/orgs/{user}/repos"
 
         raise ValueError("Couldn't create repository: No permission.")
 
@@ -284,9 +284,9 @@ class GhRepos(GhCollection):
     """Github repository container
     """
 
-    get_url_template = "/users/{owner}"
-    child_class = GhOwnerRepos
-    child_parameter = "owner"
+    get_url_template = "/users/{user}"
+    child_class = GhUserRepos
+    child_parameter = "user"
 
 
 @classtree.instantiate
@@ -296,19 +296,19 @@ class GhUser(GhResource, classtree.Base):
     @property
     def url_template(self):
         return "/user" \
-            if self._owner == config.get('github', 'user') \
-            else "/users/{owner}"
+            if self._user == config.get('github', 'user') \
+            else "/users/{user}"
 
-GhUser["repos"] = GhOwnerRepos
+GhUser["repos"] = GhUserRepos
 
 
 class GhUsers(GhCollection):
     """Users representation
     """
 
-    get_url_template = "/users/{owner}"
+    get_url_template = "/users/{user}"
     child_class = GhUser
-    child_parameter = "owner"
+    child_parameter = "user"
 
 
 @classtree.instantiate
