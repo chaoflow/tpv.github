@@ -78,7 +78,7 @@ def github_request_length(urlpath):
 class GhResource(dict):
     @property
     def url_template(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
@@ -114,27 +114,27 @@ class GhCollection(object):
 
     @property
     def list_url_template(self):
-        raise NotImplemented("Collection is not iterable.")
+        raise NotImplementedError("Collection is not iterable.")
 
     @property
     def list_key(self):
-        raise NotImplemented("Collection is not iterable.")
+        raise NotImplementedError("Collection is not iterable.")
 
     @property
     def get_url_template(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @property
     def child_class(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @property
     def child_parameter(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @property
     def add_url_template(self):
-        raise NotImplemented("Can't add to collection.")
+        raise NotImplementedError("Can't add to collection.")
 
     def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
