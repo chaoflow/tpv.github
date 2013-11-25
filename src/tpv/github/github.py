@@ -95,9 +95,15 @@ class GhResource(dict):
         self.update({key: value})
 
     def update(self, data):
-        data = set_on_new_dict(data,
-                               self._parent.list_key,
-                               self._parameters[self._parent.child_parameter])
+        try:
+            data = set_on_new_dict(data,
+                                   self._parent.list_key,
+                                   self._parameters[self._parent.child_parameter])
+        except NotImplementedError:
+            # the parent is not iterable, the caller of update has to
+            # supply all mandatory arguments in data
+            pass
+
         url = self.url_template.format(**self._parameters)
         req = github_request("PATCH", url, data=data)
         if '200 OK' not in req.headers["status"]:
