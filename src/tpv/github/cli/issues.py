@@ -2,6 +2,7 @@ import tpv.cli
 from aspects import stdout_to_pager
 
 from .types import repo_type
+from .decorators import add_argument_switches
 
 
 class Issues(tpv.cli.Command):
@@ -11,28 +12,17 @@ class Issues(tpv.cli.Command):
         pass
 
 
-def make_function(name):
-    return lambda self, param: self.arguments.__setitem__(name, param)
-
-
-def add_argument_switches(parameter_names):
-    def deco(cls):
-        for name in parameter_names:
-            f = tpv.cli.switch("--" + name, argtype=str)(make_function(name))
-            setattr(cls, name, f)
-        return cls
-    return deco
-
-
-@add_argument_switches(["milestone",
-                        "state",
-                        "assignee",
-                        "creator",
-                        "mentioned",
-                        "labels",
-                        "sort",
-                        "direction",
-                        "since"])
+@add_argument_switches([
+    dict(name="milestone", help=u"milestone number or '*' for any"),
+    dict(name="state", help=u"Indicates the state of the issues to return. Can be either open or closed."),
+    dict(name="assignee", help=u"Can be the name of a user. Pass in none for issues with no assigned user, and * for issues assigned to any user."),
+    dict(name="creator", help=u"The user that created the issue"),
+    dict(name="mentioned", help=u"A user that's mentioned in the issue"),
+    dict(name="labels", help=u"A list of comma separated label names"),
+    dict(name="sort", help=u"What to sort results by. Can be either created, updated, comments."),
+    dict(name="direction", help=u"The direction of the sort. Can be either asc or desc."),
+    dict(name="since", help=u"Only issues updated at or after this time are returned (YYYY-MM-DDTHH:MM:SSZ).")
+])
 @stdout_to_pager
 class List(tpv.cli.Command):
     """List issues matching filter criteria
