@@ -42,7 +42,8 @@ Author: {user[login]}
         if issue["assignee"] is not None:
             tmpl += "Assignee: {assignee[login]}\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m", **issue)
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
+                          **issue).encode('utf-8')
 
     def __call__(self):
         if self.repo == None:

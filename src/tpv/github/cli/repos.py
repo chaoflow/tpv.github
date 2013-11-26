@@ -30,7 +30,8 @@ Description: {description}
             tmpl += u"homepage: {homepage}\n"
         tmpl += u"updated: {updated_at}\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m", **repo)
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
+                          **repo).encode('utf-8')
 
     def __call__(self, user=None):
         '''List Repositories

@@ -5,6 +5,11 @@ from metachao import aspect
 import tpv.cli
 
 class stdout_to_pager(aspect.Aspect):
+    '''
+    WARNING: as subprocess isn't able to create full-grown utf-8
+    pipes, you will have to make sure utf-8 strings are encoded before
+    printing to stdout.
+    '''
     no_pager = tpv.cli.Flag("--no-pager", default=False)
 
     @aspect.plumb
@@ -13,7 +18,10 @@ class stdout_to_pager(aspect.Aspect):
             return _next(*args)
         else:
             # reroute stdout to pager
-            less = subprocess.Popen(["less"], stdin=subprocess.PIPE, stdout=sys.stdout)
+
+            less = subprocess.Popen(["less"],
+                                    stdin=subprocess.PIPE,
+                                    stdout=sys.stdout)
             sys.stdout = less.stdin
 
             try:
