@@ -17,9 +17,6 @@ class Repos(tpv.cli.Command):
 class List(tpv.cli.Command):
     """List repos
     """
-    user = tpv.cli.SwitchAttr("--user", user_type,
-                               help="User owning the repository")
-
     def print_repo(self, repo):
         tmpl = u'''
 {cyanfont}{name}{normalfont}
@@ -35,11 +32,13 @@ Description: {description}
 
         print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m", **repo)
 
-    def __call__(self):
-        if self.user is None:
-            self.user = user_type(None)
-
-        for name, repo in self.user["repos"].iteritems():
+    def __call__(self, user=None):
+        '''List Repositories
+Arguments:
+`user` - User owning the repositories
+        '''
+        user = user_type(user)
+        for name, repo in user["repos"].iteritems():
             self.print_repo(repo)
 
 
@@ -66,21 +65,20 @@ Description: {description}
 class Add(tpv.cli.Command):
     """Add a new Repo
     """
-    user = tpv.cli.SwitchAttr("--user", user_type,
-                               help="User owning the repository")
+    org = tpv.cli.SwitchAttr("--org", user_type,
+                             help="Organization owning the repository")
 
     def __init__(self, *args, **kwargs):
         tpv.cli.Command.__init__(self, *args, **kwargs)
         self.arguments = dict()
 
     def __call__(self, name=None):
-        if self.user is None:
-            self.user = user_type(None)
+        user = self.org if self.org is not None else user_type(None)
 
         if name is None:
             name = git['rev-parse', '--show-toplevel']().strip().split('/')[-1]
 
-        self.user["repos"][name] = self.arguments
+        user["repos"][name] = self.arguments
 
 
 @add_argument_switches([
@@ -106,15 +104,14 @@ class Add(tpv.cli.Command):
 class Update(tpv.cli.Command):
     """Update a Repo
     """
-    repo = tpv.cli.SwitchAttr("--repo", repo_type,
-                              help="The repository")
-
     def __init__(self, *args, **kwargs):
         tpv.cli.Command.__init__(self, *args, **kwargs)
         self.arguments = dict()
 
-    def __call__(self, name=None):
-        if self.repo is None:
-            self.repo = repo_type(None)
-
-        self.repo.update(self.arguments)
+    def __call__(self, repo=None):
+        '''Updating a repository
+Arguments:
+`repo` - Repository to be updated
+        '''
+        repo = repo_type(repo)
+        repo.update(self.arguments)
