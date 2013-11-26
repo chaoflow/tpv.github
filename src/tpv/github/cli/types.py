@@ -14,7 +14,12 @@ def repo_type(repo_name):
         else:
             raise ValueError("Remote origin is not from github.")
 
-    (user, repo) = repo_name.split("/", 1)
+    if '/' not in repo_name:
+        user = authenticated_user()
+        repo = repo_name
+    else:
+        (user, repo) = repo_name.split("/", 1)
+
     try:
         return Github()["repos"][user][repo]
     except KeyError:
