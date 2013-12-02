@@ -55,6 +55,9 @@ def github_request(method, urlpath, data=None, params=None):
 def github_request_paginated(method, urlpath, params=None):
     while urlpath:
         req = github_request(method, urlpath, params=params)
+        if '200 OK' not in req.headers['status']:
+            raise RuntimeError(req.json()['message'])
+
         for elem in req.json():
             yield elem
 
