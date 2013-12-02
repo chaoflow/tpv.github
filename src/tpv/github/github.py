@@ -346,12 +346,85 @@ GhUser["repos"] = GhUserRepos
 
 
 class GhUsers(GhCollection):
-    """Users representation
-    """
+    """Users representation"""
 
     get_url_template = "/users/{user}"
     child_class = GhUser
     child_parameter = "user"
+
+
+class GhMember(GhResource):
+    """Member of an organisation or team"""
+
+
+class GhTeamMembers(GhCollection):
+    """Members of a team"""
+
+    list_url_template = "/teams/{teamid}/members"
+    list_key = "login"
+
+    child_class = GhMember
+    child_parameter = "login"
+
+    add_url_template = "/teams/{teamid}/members/{login}"
+    add_method = "PUT"
+
+    delete_url_template = "/teams/{teamid}/members/{login}"
+
+
+@classtree.instantiate
+class GhTeam(GhResource, classtree.Base):
+    """Team in an organisation """
+
+    url_template = "/teams/{teamid}"
+
+GhTeam["members"] = GhTeamMembers
+
+
+class GhOrgTeams(GhCollection):
+    """Teams in an organisation
+    """
+
+    list_url_template = "/orgs/{org}/teams"
+    list_key = "id"
+
+    get_url_template = "/teams/{teamid}"
+    child_parameter = "teamid"
+    child_class = GhTeam
+
+    add_url_template = "/orgs/{org}/teams"
+    delete_url_template = "/teams/{teamid}"
+
+
+class GhOrgMembers(GhCollection):
+    """Members of an organisation"""
+
+    list_url_template = "/orgs/{org}/members"
+    list_key = "login"
+
+    child_class = GhMember
+    child_parameter = "login"
+
+    delete_url_template = "/orgs/{org}/members/{login}"
+
+
+@classtree.instantiate
+class GhOrg(GhResource, classtree.Base):
+    """Organisation"""
+
+    url_template = "/orgs/{org}"
+
+GhOrg["members"] = GhOrgMembers
+GhOrg["teams"] = GhOrgTeams
+
+
+class GhOrgs(GhCollection):
+    """Organisations representation
+    """
+
+    get_url_template = "/orgs/{org}"
+    child_class = GhOrg
+    child_parameter = "org"
 
 
 @classtree.instantiate
@@ -363,7 +436,7 @@ class Github(classtree.Base):
 
 Github["repos"] = GhRepos
 Github["users"] = GhUsers
-
+Github["orgs"] = GhOrgs
 
 
 
