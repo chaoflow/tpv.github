@@ -1,6 +1,9 @@
 from plumbum.cmd import git
+from itertools import ifilter
 
-from ..github import Github, authenticated_user
+from ..github import Github, GhOrg, authenticated_user
+
+github = Github()
 
 
 def repo_type(repo_name):
@@ -21,7 +24,7 @@ def repo_type(repo_name):
         (user, repo) = repo_name.split("/", 1)
 
     try:
-        return Github()["repos"][user][repo]
+        return github["repos"][user][repo]
     except KeyError:
         raise ValueError("Repository `{}` not found on github."
                          .format(repo_name))
@@ -32,7 +35,31 @@ def user_type(user):
         user = authenticated_user()
 
     try:
-        return Github()["users"][user]
+        return github["users"][user]
     except KeyError:
         raise ValueError("User `{}` not found on github."
                          .format(user))
+
+
+def org_type(org):
+    try:
+        return github["orgs"][org]
+    except KeyError:
+        raise ValueError("Organisation `{}` not found on github."
+                         .format(org))
+
+
+def team_type(org, team_name):
+    if not isinstance(org, GhOrg):
+        org = org_type(org)
+
+    if team_name is None:
+        team_name = "Owners"
+
+    try:
+        teamid = next(ifilter(lambda x: x['name'] == team_name,
+                              org["teams"].itervalues()))['id']
+        return org["teams"][teamid]
+    except (StopIteration, KeyError):
+        raise ValueError("Team `{}` not found in organisation `{}` on github."
+                         .format(team_name, org['login']))
