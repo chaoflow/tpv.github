@@ -1,0 +1,36 @@
+* Setitem
+to create new items different methods are possible.
+
+we'll use add for now as it feels to be the most flexible approach,
+albeit not so dicttree alike.
+
+** Separate function add
+bonus: can return new key
+malus: not very intuitive/dicttreeish
+
+team = github["orgs"]["chaoflownet"]["teams"]["Owners"]
+team.add("nuit")
+
+** Mismatch between key and required parameter allowed
+repoissues = github["repo"]["chaoflow"]["<repo>"]["issues"]
+repoissues["title"] = {}
+-> creates an issue with title being "title"
+which is then accessible via some new issueno on
+repoissues[issueno]
+
+bonus: feels a bit like a dicttree
+malus: it's confusing, when setitem and getitem use different keys
+** Specific key/object
+just pass in -1 as a kind of placeholder key
+
+a bit nicer: have a class newobject and pass in an instance of this
+class, like this one avoids collisions and the post/put can even set
+the new key on the object, f.ex.
+
+new = newobject()
+repoissues[new] = { 'title': "test" }
+issue = new.obj
+
+if issuenumber is not interesting, it's not much heavier like:
+repoissues[None] = { ... }
+

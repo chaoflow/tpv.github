@@ -145,6 +145,7 @@ class GhCollection(object):
     def add_url_template(self):
         raise NotImplementedError("Can't add to collection.")
 
+    add_method = "POST"
     def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
         self._parameters = kwargs
@@ -204,19 +205,48 @@ class GhCollection(object):
 
         return self.child_class(self, data=req.json(), **parameters)
 
-    def __setitem__(self, key, parameters):
-        url = self.add_url_template.format(**self._parameters)
-        parameters = set_on_new_dict(parameters, self.list_key, key)
+    def add(self, **arguments):
+        # check if all required arguments are provided
+        for required_arg in getattr(self, 'add_required_arguments', []):
+            if required_arg not in arguments:
+                raise ValueError("Not all required arguments {} provided"
+                                 .format(", ".join(self.add_required_arguments)))
 
-        req = github_request("POST", url,
-                             data=parameters)
-        if "201 Created" not in req.headers["status"]:
-            raise ValueError("Couldn't create {} object: {}"
-                             .format(self.child_class.__name__,
-                                     req.json()["message"]))
+        if self.add_method == "POST":
+            url = self.add_url_template.format(**self._parameters)
+            req = github_request("POST", url,
+                                 data=arguments)
+            if "201 Created" not in req.headers["status"]:
+                raise ValueError("Couldn't create {} object: {}"
+                                 .format(self.child_class.__name__,
+                                         req.json()["message"]))
+            else:
+                data = req.json()
+                parameters = set_on_new_dict(self._parameters,
+                                             self.child_parameter,
+                                             data[self.list_key])
+                return self.child_class(parent=self, data=data, **parameters)
+
+        elif self.add_method == "PUT":
+            tmpl_vars = set_on_new_dict(self._parameters,
+                                        self.child_parameter,
+                                        arguments[self.list_key])
+            url = self.add_url_template.format(**tmpl_vars)
+
+            req = github_request("PUT", url,
+                                 data=arguments)
+            if "204 No Content" not in req.headers["status"]:
+                raise ValueError("Couldn't create {} object: {}"
+                                 .format(self.child_class.__name__,
+                                         req.json()["message"]))
+            # else:
+            #     return self.child_class(parent=self, **tmpl_vars)
+
 
     def __delitem__(self, key):
-        url = self.delete_url_template.format(**self._parameters)
+        tmpl_vars = set_on_new_dict(self._parameters,
+                                     self.child_parameter, key)
+        url = self.delete_url_template.format(**tmpl_vars)
         req = github_request("DELETE", url)
         if "204 No Content" not in req.headers["status"]:
             raise ValueError("Couldn't delete {} object: {}"
