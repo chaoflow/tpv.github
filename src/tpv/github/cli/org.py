@@ -1,7 +1,7 @@
 import sys
 import tpv.cli
 
-from .types import user_type, org_type
+from .types import user_type, org_type, team_type
 from .decorators import add_argument_switches
 
 from .user import Show as UserShow
@@ -32,7 +32,7 @@ class Show(UserShow):
          help="Billing email address. Not public.")
 ])
 class Update(tpv.cli.Command):
-    """Update organization info of the organization <org>
+    """Update organisation info of the organisation <org>
     """
 
     def __init__(self, *args, **kwargs):
@@ -45,37 +45,46 @@ class Update(tpv.cli.Command):
 
 
 class Members(tpv.cli.Command):
-    """Manage members of an organization
+    """Manage members of an organisation
     """
     def __call__(self):
         pass
 
 
-class MemList(tpv.list.Command):
-    """List members of an organization"""
+class MemList(tpv.cli.Command):
+    """List members of an organisation"""
 
     team = tpv.cli.SwitchAttr("--team", argtype=str,
                               help="Team from which to list the members")
+
+    def print_member(self, member):
+        tmpl = u"""
+{cyanfont}{login}{normalfont}
+id: {id}
+site_admin: {site_admin}
+        """.strip()+"\n"
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
+                          **member)
 
     def __call__(self, org_name):
         org = org_type(org_name)
 
         if self.team is not None:
             try:
-                team =  org["teams"][self.team]
+                team = org["teams"][self.team]
             except KeyError:
-                raise ValueError("No team `{}` in the organization `{}`"
+                raise ValueError("No team `{}` in the organisation `{}`"
                                  .format(self.team, org['name']))
 
-            for member in team["members"]:
+            for login, member in team["members"].iteritems():
                 self.print_member(member)
         else:
-            for member in org["members"]:
+            for login, member in org["members"].iteritems():
                 self.print_member(member)
 
 
 class MemAdd(tpv.cli.Command):
-    '''Add members to the team of an organization'''
+    '''Add members to the team of an organisation'''
 
     team = tpv.cli.SwitchAttr("--team", argtype=str,
                               help="Team from which to list the members")
@@ -110,3 +119,69 @@ class MemRemove(tpv.cli.Command):
                 del removefrom["members"][user_name]
             except KeyError:
                 print >> sys.stderr, "User `{}` not a member, ignoring.".format(user_name)
+
+
+class Teams(tpv.cli.Command):
+    """Manage teams of an organisation
+    """
+    def __call__(self):
+        pass
+
+
+class TeamsList(tpv.cli.Command):
+    '''List teams of an organisation'''
+
+    def print_team(self, team):
+        print "{name} ({id})\n".format(**team)
+
+    def __call__(self, org):
+        org = org_type(org)
+
+        for team in org["teams"].itervalues():
+            self.print_team(team)
+
+
+class TeamsShow(tpv.cli.Command):
+    """Show one team with its members and so on"""
+
+    def print_team(self, team):
+        tmpl = u"""
+{cyanfont}{name}{normalfont} ({id})
+members count: {members_count}
+repos count: {repos_count}
+members: {members}
+        """.strip()
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
+                          members=", ".join(m["login"] for m in team["members"].itervalues()),
+                          **team)
+
+    def __call__(self, org, team):
+        team = team_type(org, team)
+        self.print_team(team)
+
+
+@add_argument_switches([
+    dict(name="repo_names", flagname="--repo", list=True,
+         help="The repositories to add the team to"),
+    dict(name="permission",
+         help="The permission to grant the team. One of pull, push or admin.")
+])
+class TeamsAdd(tpv.cli.Command):
+    """Add a team to an organisation"""
+
+    def __init__(self, *args, **kwargs):
+        tpv.cli.Command.__init__(self, *args, **kwargs)
+        self.arguments = dict()
+
+    def __call__(self, org, team):
+        org = org_type(org)
+        org["teams"].add(name=team, **self.arguments)
+
+
+class TeamsRemove(tpv.cli.Command):
+    """Remove a team from an organisation"""
+
+    def __call__(self, org, team):
+        org = org_type(org)
+        team = team_type(org, team)
+        del org["teams"][team["id"]]
