@@ -87,13 +87,13 @@ class MemAdd(tpv.cli.Command):
         for user_name in users:
             try:
                 user = user_type(user_name)
-                team["members"][user['login']] = {}
+                team["members"].add(login=user['login'])
             except ValueError:
                 print >> sys.stderr, "User `{}` not found, ignoring.".format(user_name)
 
 
 class MemRemove(tpv.cli.Command):
-    '''Remove members from an organization or teams of an organization'''
+    '''Remove members from an organisation or teams of an organisation'''
 
     team = tpv.cli.SwitchAttr("--team", argtype=str,
                               help="Team from which to list the members")

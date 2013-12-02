@@ -79,7 +79,7 @@ class Add(tpv.cli.Command):
         if name is None:
             name = git['rev-parse', '--show-toplevel']().strip().split('/')[-1]
 
-        user["repos"][name] = self.arguments
+        user["repos"].add(name=name, **self.arguments)
 
 
 @add_argument_switches([
