@@ -65,3 +65,14 @@ def team_type(org, team_name):
     except (StopIteration, KeyError):
         raise ValueError("Team `{}` not found in organisation `{}` on github."
                          .format(team_name, org['login']))
+
+
+def issue_type(repo, issueno):
+    if not isinstance(repo, GhRepo):
+        repo = repo_type(repo)
+
+    try:
+        return repo["issues"][issueno]
+    except KeyError:
+        raise ValueError("Issue `{}` not found in repository `{}`."
+                         .format(issueno, repo['full_name']))
