@@ -10,7 +10,7 @@ class Github(tpv.cli.Command):
 
     Come join the discussion!
     """
-    VERSION = 0
+    VERSION = "v0"
 
     def __call__(self):
         self.help()
