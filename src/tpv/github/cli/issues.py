@@ -1,7 +1,7 @@
 import tpv.cli
 from aspects import stdout_to_pager
 
-from .types import repo_type
+from .types import repo_type, issue_type
 from .decorators import add_argument_switches
 
 
@@ -27,7 +27,8 @@ class Issues(tpv.cli.Command):
 class List(tpv.cli.Command):
     """List issues matching filter criteria
     """
-    repo = tpv.cli.SwitchAttr("--repo", repo_type, help="The repository <user>/<repo>")
+    repo = tpv.cli.SwitchAttr("--repo", repo_type,
+                              help="The repository <user>/<repo>")
 
     def __init__(self, *args):
         tpv.cli.Command.__init__(self, *args)
@@ -46,7 +47,7 @@ Author: {user[login]}
                           **issue).encode('utf-8')
 
     def __call__(self):
-        if self.repo == None:
+        if self.repo is None:
             self.repo = repo_type(None)
 
         for no, issue in self.repo["issues"].search(**self.arguments):
@@ -54,16 +55,180 @@ Author: {user[login]}
 
 
 class Show(tpv.cli.Command):
-    """Show a list of issues by their issuenumber
-    """
+    """Show a list of issues by their issuenumber """
+
+    repo = tpv.cli.SwitchAttr("--repo", repo_type,
+                              help="The repository <user>/<repo>")
+
+    with_comments = tpv.cli.Flag("--no-comments",
+                                 help="Don't print comments",
+                                 default=True)
+
+    def print_comment(self, comment):
+        tmpl = u'''
+{cyanfont}{user[login]}{normalfont} ({id})
+updated: {updated_at}
+{body}
+        '''.strip()+"\n"
+
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
+                          **comment).encode('utf-8')
+
+    def print_issue(self, issue):
+        tmpl = u'''
+{cyanfont}{number}: {title}{normalfont}
+State: {state}
+Author: {user[login]}
+Updated: {updated_at}
+        '''.strip()+"\n"
+        if issue["assignee"] is not None:
+            tmpl += u"Assignee: {assignee[login]}\n"
+        if len(issue["body"]) > 0:
+            tmpl += u"\n{body}\n"
+
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
+                          **issue).encode('utf-8')
+
+        if self.with_comments:
+            print "{cyanfont}Comments:{normalfont}" \
+                .format(cyanfont="\033[0;36m",
+                        normalfont="\033[0m")
+
+            for comment in issue["comments"].itervalues():
+                self.print_comment(comment)
+
     def __call__(self, *issuenumbers):
         for issueno in issuenumbers:
-            # great stuff to happen here
-            pass
+            issue = issue_type(self.repo, issueno)
+            self.print_issue(issue)
 
 
+@add_argument_switches([
+    dict(name="milestone", help=u"milestone number or '*' for any"),
+    dict(name="title", help=u"The title of the issue", mandatory=True),
+    dict(name="body", flagname="--description",
+         help=u"The contents of the issue."),
+    dict(name="assignee",
+         help=u"Login for the user that this issue should be assigned to."),
+    dict(name="milestone",
+         help=u"Milestone to associate this issue with."),
+    dict(name="labels", flagname="--label", list=True,
+         help=u"Labels to associate with this issue")
+])
 class Add(tpv.cli.Command):
-    """Add a new issue
-    """
+    """Add a new issue """
+
+    repo = tpv.cli.SwitchAttr("--repo", repo_type,
+                              help="The repository <user>/<repo>")
+
+    def __init__(self, *args):
+        tpv.cli.Command.__init__(self, *args)
+        self.arguments = dict()
+
+    def __call__(self):
+        if self.repo is None:
+            self.repo = repo_type(None)
+
+        self.repo["issues"].add(**self.arguments)
+
+
+@add_argument_switches([
+    dict(name="title", help=u"The title of the issue"),
+    dict(name="body", flagname="--description",
+         help=u"The contents of the issue."),
+    dict(name="assignee",
+         help=u"Login for the user that this issue should be assigned to."),
+    dict(name="state",
+         help=u"State of the issue (open/closed)."),
+    dict(name="milestone",
+         help=u"Milestone to associate this issue with."),
+    dict(name="labels", flagname="--label", list=True,
+         help=u"Labels to associate with this issue")
+])
+class Update(tpv.cli.Command):
+    """Add a new issue """
+
+    repo = tpv.cli.SwitchAttr("--repo", repo_type,
+                              help="The repository <user>/<repo>")
+
+    def __init__(self, *args):
+        tpv.cli.Command.__init__(self, *args)
+        self.arguments = dict()
+
+    def __call__(self, issueno):
+        issue = issue_type(self.repo, issueno)
+        issue.update(self.arguments)
+
+
+class Comments(tpv.cli.Command):
+    """Manage comments of an issue"""
     def __call__(self):
         pass
+
+
+class CommentsList(tpv.cli.Command):
+    """List comments of an issue """
+
+    repo = tpv.cli.SwitchAttr("--repo", repo_type,
+                              help="The repository <user>/<repo>")
+
+    def print_comment(self, comment):
+        tmpl = u'''
+{cyanfont}{user[login]}{normalfont} ({id})
+updated: {updated_at}
+{body}
+        '''.strip()+"\n"
+
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
+                          **comment).encode('utf-8')
+
+    def __call__(self, issueno):
+        issue = issue_type(self.repo, issueno)
+
+        for comment in issue["comments"].itervalues():
+            self.print_comment(comment)
+
+
+class CommentsAdd(tpv.cli.Command):
+    """Add a comment """
+
+    repo = tpv.cli.SwitchAttr("--repo", repo_type,
+                              help="The repository <user>/<repo>")
+    text = tpv.cli.SwitchAttr("--text", str, help=u"The comment.")
+
+    def __call__(self, issueno, text=None):
+        if text is None:
+            text = self.text
+
+        issue = issue_type(self.repo, issueno)
+        issue["comments"].add(body=text)
+
+
+class CommentsUpdate(tpv.cli.Command):
+    """Edits a comment """
+
+    repo = tpv.cli.SwitchAttr("--repo", repo_type,
+                              help="The repository <user>/<repo>")
+    text = tpv.cli.SwitchAttr("--text", str, help=u"The comment.")
+
+    def __call__(self, commentid, text=None):
+        if text is None:
+            text = self.text
+
+        if self.repo is None:
+            self.repo = repo_type(None)
+
+        self.repo["comments"][commentid].update(dict(body=text))
+
+
+class CommentsRemove(tpv.cli.Command):
+    """Removes a comment """
+
+    repo = tpv.cli.SwitchAttr("--repo", repo_type,
+                              help="The repository <user>/<repo>")
+
+    def __call__(self, commentid):
+        if self.repo is None:
+            self.repo = repo_type(None)
+
+        del self.repo["comments"][commentid]
