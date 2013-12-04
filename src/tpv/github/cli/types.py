@@ -1,12 +1,12 @@
 from plumbum.cmd import git
 from itertools import ifilter
 
-from ..github import Github, GhOrg, authenticated_user
+from ..github import Github, GhOrg, GhRepo, authenticated_user
 
 github = Github()
 
 
-def repo_type(repo_name):
+def repo_type(repo_name, user_fallback=None):
     if repo_name is None:
         # fetch from git repo
         url = git["config", "remote.origin.url"]().rstrip('\n')
@@ -18,7 +18,9 @@ def repo_type(repo_name):
             raise ValueError("Remote origin is not from github.")
 
     if '/' not in repo_name:
-        user = authenticated_user()
+        user = authenticated_user() \
+            if user_fallback is None \
+            else user_fallback
         repo = repo_name
     else:
         (user, repo) = repo_name.split("/", 1)
