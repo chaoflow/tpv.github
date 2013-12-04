@@ -1,7 +1,7 @@
 import sys
 import tpv.cli
 
-from .types import user_type, org_type, team_type
+from .types import user_type, org_type, team_type, repo_type
 from .decorators import add_argument_switches
 
 from .user import Show as UserShow
@@ -175,6 +175,10 @@ class TeamsAdd(tpv.cli.Command):
 
     def __call__(self, org, team):
         org = org_type(org)
+
+        if 'repo_names' in self.arguments:
+            self.arguments['repo_names'] = [ repo_type(x, org['login'])['full_name']
+                                             for x in self.arguments['repo_names'] ]
         org["teams"].add(name=team, **self.arguments)
 
 
@@ -185,3 +189,47 @@ class TeamsRemove(tpv.cli.Command):
         org = org_type(org)
         team = team_type(org, team)
         del org["teams"][team["id"]]
+
+
+class TeamsRepos(tpv.cli.Command):
+    """Manage repos of of an organisation's teams """
+    def __call__(self):
+        pass
+
+
+class TeamsReposList(tpv.cli.Command):
+    """List team repos"""
+
+    def print_repo(self, repo):
+        tmpl = """
+{cyanfont}{name}{normalfont}
+{description}
+        """.strip() + "\n"
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m", **repo)
+
+    def __call__(self, org, team):
+        team = team_type(org, team)
+        for repo in team["repos"].itervalues():
+            self.print_repo(repo)
+
+
+class TeamsReposAdd(tpv.cli.Command):
+    """Add repos to an organisation's team """
+
+    def __call__(self, org, team, repo):
+        org = org_type(org)
+        team = team_type(org, team)
+        repo = repo_type(repo, org["login"])
+
+        team["repos"].add(name=repo["full_name"])
+
+
+class TeamsReposRemove(tpv.cli.Command):
+    """Remove repos from an organisation's team """
+
+    def __call__(self, org, team, repo):
+        org = org_type(org)
+        team = team_type(org, team)
+        repo = repo_type(repo, org["login"])
+
+        del team["repos"][repo["full_name"]]

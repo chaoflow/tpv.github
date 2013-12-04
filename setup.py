@@ -70,7 +70,10 @@ setup(name='tpv.nix',
               'org/teams/show = tpv.github.cli.org:TeamsShow',
               'org/teams/add = tpv.github.cli.org:TeamsAdd',
               'org/teams/remove = tpv.github.cli.org:TeamsRemove',
-
+              'org/teams/repos = tpv.github.cli.org:TeamsRepos',
+              'org/teams/repos/list = tpv.github.cli.org:TeamsReposList',
+              'org/teams/repos/add = tpv.github.cli.org:TeamsReposAdd',
+              'org/teams/repos/remove = tpv.github.cli.org:TeamsReposRemove',
           ],
       },
       )
