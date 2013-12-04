@@ -146,6 +146,8 @@ class GhCollection(object):
         raise NotImplementedError("Can't add to collection.")
 
     add_method = "POST"
+    # add_required_arguments = [ "name", "..." ... ]
+
     def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
         self._parameters = kwargs
@@ -242,10 +244,9 @@ class GhCollection(object):
             # else:
             #     return self.child_class(parent=self, **tmpl_vars)
 
-
     def __delitem__(self, key):
         tmpl_vars = set_on_new_dict(self._parameters,
-                                     self.child_parameter, key)
+                                    self.child_parameter, key)
         url = self.delete_url_template.format(**tmpl_vars)
         req = github_request("DELETE", url)
         if "204 No Content" not in req.headers["status"]:
@@ -254,12 +255,51 @@ class GhCollection(object):
                                      req.json()["message"]))
 
 
+class GhComment(GhResource):
+    """Comment of some issue """
 
-class GhIssue(GhResource):
+    url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
+
+
+class GhRepoComments(GhCollection):
+    """The comments of some repository
+    """
+
+    list_url_template = "/repos/{user}/{repo}/issues/comments"
+    list_key = "id"
+
+    get_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
+    child_class = GhComment
+    child_parameter = "commentid"
+
+    delete_url_template = get_url_template
+
+
+class GhIssueComments(GhCollection):
+    """The comments of some issue
+    """
+
+    list_url_template = "/repos/{user}/{repo}/issues/{issueno}/comments"
+    list_key = "id"
+
+    get_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
+    child_class = GhComment
+    child_parameter = "commentid"
+
+    add_url_template = list_url_template
+    add_required_arguments = ["body"]
+
+    delete_url_template = get_url_template
+
+
+@classtree.instantiate
+class GhIssue(GhResource, classtree.Base):
     """Issue of some repository
     """
 
-    url_template = "/repos/{user}/{repo}/issues/{number}"
+    url_template = "/repos/{user}/{repo}/issues/{issueno}"
+
+GhIssue["comments"] = GhIssueComments
 
 
 class GhRepoIssues(GhCollection):
@@ -269,9 +309,9 @@ class GhRepoIssues(GhCollection):
     list_url_template = "/repos/{user}/{repo}/issues"
     list_key = "number"
 
-    get_url_template = "/repos/{user}/{repo}/issues/{number}"
+    get_url_template = "/repos/{user}/{repo}/issues/{issueno}"
     child_class = GhIssue
-    child_parameter = "number"
+    child_parameter = "issueno"
 
     add_url_template = "/repos/{user}/{repo}/issues"
 
@@ -298,6 +338,7 @@ class GhRepo(GhResource, classtree.Base):
     url_template = "/repos/{user}/{repo}"
 
 GhRepo["issues"] = GhRepoIssues
+GhRepo["comments"] = GhRepoComments
 
 
 class GhUserRepos(GhCollection):
