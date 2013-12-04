@@ -19,7 +19,7 @@ class stdout_to_pager(aspect.Aspect):
         else:
             # reroute stdout to pager
 
-            less = subprocess.Popen(["less"],
+            less = subprocess.Popen(["less", "-R"],
                                     stdin=subprocess.PIPE,
                                     stdout=sys.stdout)
             sys.stdout = less.stdin
