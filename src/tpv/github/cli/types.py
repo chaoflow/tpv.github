@@ -1,3 +1,4 @@
+from tpv.cli import DocPredicate
 from plumbum.cmd import git
 from itertools import ifilter
 
@@ -6,7 +7,9 @@ from ..github import Github, GhOrg, GhRepo, authenticated_user
 github = Github()
 
 
+@DocPredicate
 def repo_type(repo_name, user_fallback=None):
+    """repository"""
     if repo_name is None:
         # fetch from git repo
         url = git["config", "remote.origin.url"]().rstrip('\n')
@@ -32,7 +35,9 @@ def repo_type(repo_name, user_fallback=None):
                          .format(repo_name))
 
 
+@DocPredicate
 def user_type(user):
+    """user"""
     if user is None:
         user = authenticated_user()
 
@@ -43,7 +48,9 @@ def user_type(user):
                          .format(user))
 
 
+@DocPredicate
 def org_type(org):
+    """organisation"""
     try:
         return github["orgs"][org]
     except KeyError:
@@ -51,7 +58,9 @@ def org_type(org):
                          .format(org))
 
 
+@DocPredicate
 def team_type(org, team_name):
+    """teamno"""
     if not isinstance(org, GhOrg):
         org = org_type(org)
 
@@ -67,7 +76,9 @@ def team_type(org, team_name):
                          .format(team_name, org['login']))
 
 
+@DocPredicate
 def issue_type(repo, issueno):
+    """issueno"""
     if not isinstance(repo, GhRepo):
         repo = repo_type(repo)
 
