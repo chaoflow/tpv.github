@@ -372,6 +372,21 @@ class GhTeamMembers(GhCollection):
     delete_url_template = "/teams/{teamid}/members/{login}"
 
 
+class GhTeamRepos(GhCollection):
+    """Repos in an organisation's team"""
+
+    list_url_template = "/teams/{teamid}/repos"
+    list_key = "name"
+
+    child_class = GhResource
+    child_parameter = "repo_name"
+
+    add_url_template = "/teams/{teamid}/repos/{repo_name}"
+    add_method = "PUT"
+
+    delete_url_template = "/teams/{teamid}/repos/{repo_name}"
+
+
 @classtree.instantiate
 class GhTeam(GhResource, classtree.Base):
     """Team in an organisation """
@@ -379,7 +394,7 @@ class GhTeam(GhResource, classtree.Base):
     url_template = "/teams/{teamid}"
 
 GhTeam["members"] = GhTeamMembers
-
+GhTeam["repos"] = GhTeamRepos
 
 class GhOrgTeams(GhCollection):
     """Teams in an organisation
