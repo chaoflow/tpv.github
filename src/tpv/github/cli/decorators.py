@@ -19,7 +19,9 @@ def add_argument_switches(parameters):
                 f = tpv.cli.switch(param["flagname"],
                                    argtype=param.get("type", str),
                                    help=param.get("help"),
-                                   list=param.get("list", False))(make_function(param["name"]))
+                                   list=param.get("list", False),
+                                   mandatory=param.get("mandatory", False)
+                                   )(make_function(param["name"]))
 
             setattr(cls, param["name"], f)
         return cls
