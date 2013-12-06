@@ -20,6 +20,7 @@ def add_argument_switches(parameters):
                                    argtype=param.get("type", str),
                                    help=param.get("help"),
                                    list=param.get("list", False),
+                                   completion=param.get("completion", None),
                                    mandatory=param.get("mandatory", False)
                                    )(make_function(param["name"]))
 
