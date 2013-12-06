@@ -17,4 +17,11 @@ class Github(tpv.cli.Command):
 
 tpv.pkg_resources.load_entry_points("tpv.github.gh.commands", Github)
 
+
+# def app():
+#     try:
+#         Github.run()
+#     except Exception as exc:
+#         print "Error:", exc.message
+
 app = Github.run
