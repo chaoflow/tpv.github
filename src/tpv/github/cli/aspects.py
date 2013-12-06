@@ -33,3 +33,6 @@ class stdout_to_pager(aspect.Aspect):
                 if err.errno != 32:
                     raise err
                 return 0
+            except Exception:
+                less.terminate()
+                raise
