@@ -20,6 +20,7 @@ bootstrap:
 	realpath --no-symlinks --relative-to ${VENV_SITE} ${NIX_SITE} > ${VENV_SITE}/nixprofile.pth
 	${VENV}/bin/pip install -r requirements.txt --no-index -f ""
 	for script in ${LOCALISED_SCRIPTS}; do ${VENV}/bin/easy_install -H "" $$script; done
+	./update-completions.sh
 
 print-syspath:
 	${VENV}/bin/python -c 'import sys,pprint;pprint.pprint(sys.path)'
