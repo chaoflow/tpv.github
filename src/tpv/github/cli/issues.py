@@ -1,7 +1,8 @@
 import tpv.cli
 from aspects import stdout_to_pager
 
-from .types import repo_type, issue_type
+from ..github import set_on_new_dict
+from .types import repo_type, issue_type, user_type
 from .decorators import add_argument_switches
 from tpv.cli import ListCompletion
 from .completion import RepositoryDynamicCompletion, IssueNoDynamicCompletion, CommentIdDynamicCompletion
@@ -67,9 +68,33 @@ Author: {user[login]}
                           **issue).encode('utf-8')
 
     def __call__(self):
-        self.repo = repo_type(self.repo)
+        if self.mine is None:
+            repo = repo_type(self.repo)
+            issues = repo["issues"].search(**self.arguments)
+        elif self.repo is None:
+            user = user_type(None)
+            arguments = set_on_new_dict(self.arguments,
+                                        "filter", self.mine)
+            issues = user["issues"].search(**arguments)
+        else:
+            repo = repo_type(self.repo)
+            user = user_type(None)
 
-        for no, issue in self.repo["issues"].search(**self.arguments):
+            try:
+                arguments = set_on_new_dict(self.arguments,
+                                            {'created': 'creator',
+                                             'mentioned': 'mentioned',
+                                             'assigned': 'assignee'}
+                                            [self.mine],
+                                            user['login'])
+            except KeyError:
+                raise ValueError("When specifying --repo as well as --mine, "
+                                 "--mine can only be one of created, "
+                                 "mentioned or assigned")
+
+            issues = repo["issues"].search(**arguments)
+
+        for no, issue in issues:
             self.print_issue(issue)
 
 

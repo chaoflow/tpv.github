@@ -316,7 +316,7 @@ class GhRepoIssues(GhCollection):
     add_url_template = "/repos/{user}/{repo}/issues"
 
     def _get_resources(self, **arguments):
-        urlpath = "/repos/{}/{}/issues".format(self._user, self._repo)
+        urlpath = self.list_url_template.format(**self._parameters)
         if "state" in arguments:
             return github_request_paginated("GET", urlpath, params=arguments)
         else:
@@ -373,6 +373,35 @@ class GhRepos(GhCollection):
     child_parameter = "user"
 
 
+class GhUserIssues(GhRepoIssues):
+    """The issues of the authenticated user"""
+
+    list_url_template = "/user/issues"
+
+    @property
+    def get_url_template(self):
+        raise NotImplementedError()
+
+    @property
+    def add_url_template(self):
+        raise NotImplementedError("Can't add to collection.")
+
+    def _instantiate_child_from_url(self, issueno, data):
+        m = re.match(URL_BASE + "/repos/(.+)/(.+)/issues/{}"
+                     .format(issueno),
+                     data["url"])
+        return self.child_class(self,
+                                data=data,
+                                **{'user': m.group(1),
+                                   'repo': m.group(2),
+                                   'issueno': issueno})
+
+    def search(self, **arguments):
+        for data in self._get_resources(**arguments):
+            issueno = data[self.list_key]
+            yield (issueno, self._instantiate_child_from_url(issueno, data))
+
+
 @classtree.instantiate
 class GhUser(GhResource, classtree.Base):
     """User representation
@@ -384,6 +413,7 @@ class GhUser(GhResource, classtree.Base):
             else "/users/{user}"
 
 GhUser["repos"] = GhUserRepos
+GhUser["issues"] = GhUserIssues
 
 
 class GhUsers(GhCollection):
