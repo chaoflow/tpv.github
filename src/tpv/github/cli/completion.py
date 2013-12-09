@@ -42,3 +42,14 @@ class CommentIdDynamicCompletion(DynamicCompletion):
         return [x
                 for x in map(str, repo["comments"])
                 if x.startswith(prefix)]
+
+
+class OwnOrgsDynamicCompletion(DynamicCompletion):
+    '''Completion class to dynamically complete the organisations of the authorized user '''
+
+    def complete(self, command, prefix):
+        user = user_type(None)
+
+        return [x
+                for x in user["orgs"]
+                if x.startswith(prefix)]
