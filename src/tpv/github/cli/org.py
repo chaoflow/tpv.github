@@ -83,10 +83,10 @@ site_admin: {site_admin}
 
         if self.team is not None:
             try:
-                team = org["teams"][self.team]
+                team = team_type(org, self.team)
             except KeyError:
                 raise ValueError("No team `{}` in the organisation `{}`"
-                                 .format(self.team, org['name']))
+                                 .format(self.team, org['login']))
 
             for login, member in team["members"].iteritems():
                 self.print_member(member)
@@ -99,7 +99,8 @@ class MemAdd(tpv.cli.Command):
     '''Add members to the team of an organisation'''
 
     team = tpv.cli.SwitchAttr("--team", argtype=str,
-                              help="Team from which to list the members")
+                              help="Team to which to add members",
+                              completion=TeamDynamicCompletion())
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion())
     def __call__(self, org, *users):
@@ -135,7 +136,8 @@ class MemRemove(tpv.cli.Command):
             try:
                 del removefrom["members"][user_name]
             except KeyError:
-                print >> sys.stderr, "User `{}` not a member, ignoring.".format(user_name)
+                print >> sys.stderr, \
+                    "User `{}` not a member, ignoring.".format(user_name)
 
 
 class Teams(tpv.cli.Command):
@@ -170,7 +172,8 @@ repos count: {repos_count}
 members: {members}
         """.strip()
         print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          members=", ".join(m["login"] for m in team["members"].itervalues()),
+                          members=", ".join(m["login"]
+                                            for m in team["members"].itervalues()),
                           **team)
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
@@ -201,8 +204,9 @@ class TeamsAdd(tpv.cli.Command):
         org = org_type(org)
 
         if 'repo_names' in self.arguments:
-            self.arguments['repo_names'] = [ repo_type(x, org['login'])['full_name']
-                                             for x in self.arguments['repo_names'] ]
+            self.arguments['repo_names'] = \
+                [repo_type(x, org['login'])['full_name']
+                 for x in self.arguments['repo_names']]
         org["teams"].add(name=team, **self.arguments)
 
 

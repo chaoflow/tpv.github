@@ -1,9 +1,8 @@
 import sys
 import tpv.cli
-from plumbum.cmd import git
 
 from ..github import authenticated_user
-from .types import user_type, repo_type
+from .types import user_type
 from .decorators import add_argument_switches
 
 
@@ -40,7 +39,7 @@ class Show(tpv.cli.Command):
 
     def __call__(self, *users):
         if len(users) < 1:
-            users = [ authenticated_user() ]
+            users = [authenticated_user()]
 
         for user in users:
             try:

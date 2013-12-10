@@ -5,7 +5,10 @@ from ..github import set_on_new_dict
 from .types import repo_type, issue_type, user_type
 from .decorators import add_argument_switches
 from tpv.cli import ListCompletion
-from .completion import RepositoryDynamicCompletion, IssueNoDynamicCompletion, CommentIdDynamicCompletion
+from .completion import \
+    RepositoryDynamicCompletion, \
+    IssueNoDynamicCompletion, \
+    CommentIdDynamicCompletion
 
 
 class Issues(tpv.cli.Command):
