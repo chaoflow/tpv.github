@@ -5,7 +5,11 @@ from tpv.cli import ListCompletion
 
 from .types import user_type, org_type, team_type, repo_type
 from .decorators import add_argument_switches
-from .completion import OwnOrgsDynamicCompletion, RepositoryDynamicCompletion
+from .completion import \
+    OwnOrgsDynamicCompletion, \
+    RepositoryDynamicCompletion, \
+    TeamDynamicCompletion, \
+    TeamOrgMembersDynamicCompletion
 
 from .user import Show as UserShow
 
@@ -107,16 +111,19 @@ class MemAdd(tpv.cli.Command):
                 user = user_type(user_name)
                 team["members"].add(login=user['login'])
             except ValueError:
-                print >> sys.stderr, "User `{}` not found, ignoring.".format(user_name)
+                print >> sys.stderr, \
+                    "User `{}` not found, ignoring.".format(user_name)
 
 
 class MemRemove(tpv.cli.Command):
     '''Remove members from an organisation or teams of an organisation'''
 
     team = tpv.cli.SwitchAttr("--team", argtype=str,
-                              help="Team from which to list the members")
+                              help="Team from which to list the members",
+                              completion=TeamDynamicCompletion())
 
-    @tpv.cli.completion(org=OwnOrgsDynamicCompletion())
+    @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
+                        users=TeamOrgMembersDynamicCompletion())
     def __call__(self, org, *users):
         org = org_type(org)
         if self.team is not None:
@@ -166,7 +173,8 @@ members: {members}
                           members=", ".join(m["login"] for m in team["members"].itervalues()),
                           **team)
 
-    @tpv.cli.completion(org=OwnOrgsDynamicCompletion())
+    @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
+                        team=TeamDynamicCompletion())
     def __call__(self, org, team):
         team = team_type(org, team)
         self.print_team(team)
@@ -187,7 +195,8 @@ class TeamsAdd(tpv.cli.Command):
         tpv.cli.Command.__init__(self, *args, **kwargs)
         self.arguments = dict()
 
-    @tpv.cli.completion(org=OwnOrgsDynamicCompletion())
+    @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
+                        team=TeamDynamicCompletion())
     def __call__(self, org, team):
         org = org_type(org)
 
@@ -200,7 +209,8 @@ class TeamsAdd(tpv.cli.Command):
 class TeamsRemove(tpv.cli.Command):
     """Remove a team from an organisation"""
 
-    @tpv.cli.completion(org=OwnOrgsDynamicCompletion())
+    @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
+                        team=TeamDynamicCompletion())
     def __call__(self, org, team):
         org = org_type(org)
         team = team_type(org, team)
@@ -223,7 +233,8 @@ class TeamsReposList(tpv.cli.Command):
         """.strip() + "\n"
         print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m", **repo)
 
-    @tpv.cli.completion(org=OwnOrgsDynamicCompletion())
+    @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
+                        team=TeamDynamicCompletion())
     def __call__(self, org, team):
         team = team_type(org, team)
         for repo in team["repos"].itervalues():
@@ -234,6 +245,7 @@ class TeamsReposAdd(tpv.cli.Command):
     """Add repos to an organisation's team """
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
+                        team=TeamDynamicCompletion(),
                         repo=RepositoryDynamicCompletion())
     def __call__(self, org, team, repo):
         org = org_type(org)
@@ -247,6 +259,7 @@ class TeamsReposRemove(tpv.cli.Command):
     """Remove repos from an organisation's team """
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
+                        team=TeamDynamicCompletion(),
                         repo=RepositoryDynamicCompletion())
     def __call__(self, org, team, repo):
         org = org_type(org)
