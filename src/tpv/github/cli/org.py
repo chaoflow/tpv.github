@@ -15,15 +15,13 @@ from .user import Show as UserShow
 
 
 class Org(tpv.cli.Command):
-    """Manage organizations
-    """
+    """Manage organizations """
     def __call__(self):
         pass
 
 
 class Show(UserShow):
-    """Show Org
-    """
+    """Show Org """
 
 
 @add_argument_switches([
@@ -39,8 +37,7 @@ class Show(UserShow):
          help="Billing email address. Not public.")
 ])
 class Update(tpv.cli.Command):
-    """Update organisation info of the organisation <org>
-    """
+    """Update organisation info of the organisation <org> """
 
     def __init__(self, *args, **kwargs):
         tpv.cli.Command.__init__(self, *args, **kwargs)
@@ -53,14 +50,13 @@ class Update(tpv.cli.Command):
 
 
 class Members(tpv.cli.Command):
-    """Manage members of an organisation
-    """
+    """Manage members of an organisation """
     def __call__(self):
         pass
 
 
 class MemList(tpv.cli.Command):
-    """List members of an organisation"""
+    """List members of an organisation """
 
     # TODO to complete teams one would have to adapt the
     # plumbum.cli.completions.complete method so that it passes the
@@ -96,7 +92,7 @@ site_admin: {site_admin}
 
 
 class MemAdd(tpv.cli.Command):
-    '''Add members to the team of an organisation'''
+    '''Add members to the team of an organisation '''
 
     team = tpv.cli.SwitchAttr("--team", argtype=str,
                               help="Team to which to add members",
@@ -117,7 +113,7 @@ class MemAdd(tpv.cli.Command):
 
 
 class MemRemove(tpv.cli.Command):
-    '''Remove members from an organisation or teams of an organisation'''
+    '''Remove members from an organisation or teams of an organisation '''
 
     team = tpv.cli.SwitchAttr("--team", argtype=str,
                               help="Team from which to list the members",
@@ -141,14 +137,13 @@ class MemRemove(tpv.cli.Command):
 
 
 class Teams(tpv.cli.Command):
-    """Manage teams of an organisation
-    """
+    """Manage teams of an organisation """
     def __call__(self):
         pass
 
 
 class TeamsList(tpv.cli.Command):
-    '''List teams of an organisation'''
+    '''List teams of an organisation '''
 
     def print_team(self, team):
         print "{name} ({id})\n".format(**team)
@@ -162,7 +157,7 @@ class TeamsList(tpv.cli.Command):
 
 
 class TeamsShow(tpv.cli.Command):
-    """Show one team with its members and so on"""
+    """Show one team with its members and so on """
 
     def print_team(self, team):
         tmpl = u"""
@@ -192,7 +187,7 @@ members: {members}
          completion=ListCompletion("pull", "push", "admin"))
 ])
 class TeamsAdd(tpv.cli.Command):
-    """Add a team to an organisation"""
+    """Add a team to an organisation """
 
     def __init__(self, *args, **kwargs):
         tpv.cli.Command.__init__(self, *args, **kwargs)
@@ -211,7 +206,7 @@ class TeamsAdd(tpv.cli.Command):
 
 
 class TeamsRemove(tpv.cli.Command):
-    """Remove a team from an organisation"""
+    """Remove a team from an organisation """
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
                         team=TeamDynamicCompletion())
@@ -228,7 +223,7 @@ class TeamsRepos(tpv.cli.Command):
 
 
 class TeamsReposList(tpv.cli.Command):
-    """List team repos"""
+    """List team repos """
 
     def print_repo(self, repo):
         tmpl = """
