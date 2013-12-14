@@ -99,9 +99,10 @@ class GhResource(dict):
 
     def update(self, data):
         try:
-            data = set_on_new_dict(data,
-                                   self._parent.list_key,
-                                   self._parameters[self._parent.child_parameter])
+            if self._parent.list_key not in data:
+                data = set_on_new_dict(data,
+                                       self._parent.list_key,
+                                       self._parameters[self._parent.child_parameter])
         except NotImplementedError:
             # the parent is not iterable, the caller of update has to
             # supply all mandatory arguments in data

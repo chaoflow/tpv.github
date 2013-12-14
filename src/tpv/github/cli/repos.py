@@ -85,6 +85,8 @@ class Add(tpv.cli.Command):
 
 
 @add_argument_switches([
+    dict(name="name", type=str,
+         help="A new name for the repository"),
     dict(name="description", type=str,
          help="A short description of the repository"),
     dict(name="homepage", type=str,
