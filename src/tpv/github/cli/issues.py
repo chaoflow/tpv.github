@@ -7,8 +7,7 @@ from .decorators import add_argument_switches
 from tpv.cli import ListCompletion
 from .completion import \
     RepositoryDynamicCompletion, \
-    IssueNoDynamicCompletion, \
-    CommentIdDynamicCompletion
+    RepoChildIdDynamicCompletion
 
 
 class Issues(tpv.cli.Command):
@@ -145,7 +144,7 @@ Updated: {updated_at}
             for comment in issue["comments"].itervalues():
                 self.print_comment(comment)
 
-    @tpv.cli.completion(issuenumbers=IssueNoDynamicCompletion())
+    @tpv.cli.completion(issuenumbers=RepoChildIdDynamicCompletion("issues"))
     def __call__(self, *issuenumbers):
         self.repo = repo_type(self.repo)
 
@@ -208,7 +207,7 @@ class Update(tpv.cli.Command):
         tpv.cli.Command.__init__(self, *args)
         self.arguments = dict()
 
-    @tpv.cli.completion(issueno=IssueNoDynamicCompletion())
+    @tpv.cli.completion(issueno=RepoChildIdDynamicCompletion("issues"))
     def __call__(self, issueno):
         issue = issue_type(self.repo, issueno)
         issue.update(self.arguments)
@@ -237,7 +236,7 @@ updated: {updated_at}
         print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
                           **comment).encode('utf-8')
 
-    @tpv.cli.completion(issueno=IssueNoDynamicCompletion())
+    @tpv.cli.completion(issueno=RepoChildIdDynamicCompletion("issues"))
     def __call__(self, issueno):
         issue = issue_type(self.repo, issueno)
 
@@ -253,7 +252,7 @@ class CommentsAdd(tpv.cli.Command):
                               completion=RepositoryDynamicCompletion())
     text = tpv.cli.SwitchAttr("--text", str, help=u"The comment.")
 
-    @tpv.cli.completion(issueno=IssueNoDynamicCompletion())
+    @tpv.cli.completion(issueno=RepoChildIdDynamicCompletion("issues"))
     def __call__(self, issueno, text=None):
         if text is None:
             text = self.text
@@ -270,7 +269,7 @@ class CommentsUpdate(tpv.cli.Command):
                               completion=RepositoryDynamicCompletion())
     text = tpv.cli.SwitchAttr("--text", str, help=u"The comment.")
 
-    @tpv.cli.completion(commentid=CommentIdDynamicCompletion())
+    @tpv.cli.completion(commentid=RepoChildIdDynamicCompletion("comments"))
     def __call__(self, commentid, text=None):
         if text is None:
             text = self.text
@@ -286,7 +285,7 @@ class CommentsRemove(tpv.cli.Command):
                               help="The repository <user>/<repo>",
                               completion=RepositoryDynamicCompletion())
 
-    @tpv.cli.completion(commentid=CommentIdDynamicCompletion())
+    @tpv.cli.completion(commentid=RepoChildIdDynamicCompletion("comments"))
     def __call__(self, commentid):
         repo = repo_type(self.repo)
 

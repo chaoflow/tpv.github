@@ -1,3 +1,5 @@
+import sys
+
 from tpv.cli import DynamicCompletion
 from types import user_type, repo_type, org_type, team_type
 
@@ -22,25 +24,19 @@ class RepositoryDynamicCompletion(DynamicCompletion):
                     if x.startswith(repo_prefix)]
 
 
-class IssueNoDynamicCompletion(DynamicCompletion):
-    '''Completion class to dynamically complete issuenumbers '''
+class RepoChildIdDynamicCompletion(DynamicCompletion):
+    '''Completion class to dynamically complete collections of a repo
+
+Like "issues", "pulls", "comments", "pullcomments" '''
+
+    def __init__(self, child="issues"):
+        self.child = child
 
     def complete(self, command, prefix, posargs):
         repo = repo_type(command.repo)
 
         return [x
-                for x in map(str, repo["issues"])
-                if x.startswith(prefix)]
-
-
-class CommentIdDynamicCompletion(DynamicCompletion):
-    '''Completion class to dynamically complete commentids '''
-
-    def complete(self, command, prefix, posargs):
-        repo = repo_type(command.repo)
-
-        return [x
-                for x in map(str, repo["comments"])
+                for x in map(str, iter(repo[self.child]))
                 if x.startswith(prefix)]
 
 
