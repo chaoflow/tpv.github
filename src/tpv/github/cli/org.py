@@ -55,7 +55,7 @@ class Update(tpv.cli.Command):
         org.update(self.arguments)
 
 
-class Members(tpv.cli.Command):
+class Member(tpv.cli.Command):
     """Manage members of an organisation """
     def __call__(self):
         pass
@@ -142,13 +142,13 @@ class MemRemove(tpv.cli.Command):
                     "User `{}` not a member, ignoring.".format(user_name)
 
 
-class Teams(tpv.cli.Command):
+class Team(tpv.cli.Command):
     """Manage teams of an organisation """
     def __call__(self):
         pass
 
 
-class TeamsList(tpv.cli.Command):
+class TeamList(tpv.cli.Command):
     '''List teams of an organisation '''
 
     def print_team(self, team):
@@ -162,7 +162,7 @@ class TeamsList(tpv.cli.Command):
             self.print_team(team)
 
 
-class TeamsShow(tpv.cli.Command):
+class TeamShow(tpv.cli.Command):
     """Show one team with its members and so on """
 
     def print_team(self, team):
@@ -192,7 +192,7 @@ members: {members}
          help="The permission to grant the team. One of pull, push or admin.",
          completion=ListCompletion("pull", "push", "admin"))
 ])
-class TeamsAdd(tpv.cli.Command):
+class TeamAdd(tpv.cli.Command):
     """Add a team to an organisation """
 
     def __init__(self, *args, **kwargs):
@@ -211,7 +211,7 @@ class TeamsAdd(tpv.cli.Command):
         org["teams"].add(name=team, **self.arguments)
 
 
-class TeamsRemove(tpv.cli.Command):
+class TeamRemove(tpv.cli.Command):
     """Remove a team from an organisation """
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
@@ -222,13 +222,13 @@ class TeamsRemove(tpv.cli.Command):
         del org["teams"][team["id"]]
 
 
-class TeamsRepos(tpv.cli.Command):
+class TeamRepo(tpv.cli.Command):
     """Manage repos of of an organisation's teams """
     def __call__(self):
         pass
 
 
-class TeamsReposList(tpv.cli.Command):
+class TeamRepoList(tpv.cli.Command):
     """List team repos """
 
     def print_repo(self, repo):
@@ -246,7 +246,7 @@ class TeamsReposList(tpv.cli.Command):
             self.print_repo(repo)
 
 
-class TeamsReposAdd(tpv.cli.Command):
+class TeamRepoAdd(tpv.cli.Command):
     """Add repos to an organisation's team """
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
@@ -260,7 +260,7 @@ class TeamsReposAdd(tpv.cli.Command):
         team["repos"].add(name=repo["full_name"])
 
 
-class TeamsReposRemove(tpv.cli.Command):
+class TeamRepoRemove(tpv.cli.Command):
     """Remove repos from an organisation's team """
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),

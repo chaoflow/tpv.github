@@ -10,7 +10,7 @@ from .completion import \
     RepoChildIdDynamicCompletion
 
 
-class Issues(tpv.cli.Command):
+class Issue(tpv.cli.Command):
     """Manage issues
     """
     def __call__(self):
@@ -213,13 +213,13 @@ class Update(tpv.cli.Command):
         issue.update(self.arguments)
 
 
-class Comments(tpv.cli.Command):
+class Comment(tpv.cli.Command):
     """Manage comments of an issue"""
     def __call__(self):
         pass
 
 
-class CommentsList(tpv.cli.Command):
+class CommentList(tpv.cli.Command):
     """List comments of an issue """
 
     repo = tpv.cli.SwitchAttr("--repo", str,
@@ -244,7 +244,7 @@ updated: {updated_at}
             self.print_comment(comment)
 
 
-class CommentsAdd(tpv.cli.Command):
+class CommentAdd(tpv.cli.Command):
     """Add a comment """
 
     repo = tpv.cli.SwitchAttr("--repo", str,
@@ -261,7 +261,7 @@ class CommentsAdd(tpv.cli.Command):
         issue["comments"].add(body=text)
 
 
-class CommentsUpdate(tpv.cli.Command):
+class CommentUpdate(tpv.cli.Command):
     """Edits a comment """
 
     repo = tpv.cli.SwitchAttr("--repo", str,
@@ -278,7 +278,7 @@ class CommentsUpdate(tpv.cli.Command):
         repo["comments"][commentid].update(dict(body=text))
 
 
-class CommentsRemove(tpv.cli.Command):
+class CommentRemove(tpv.cli.Command):
     """Removes a comment """
 
     repo = tpv.cli.SwitchAttr("--repo", str,

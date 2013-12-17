@@ -7,7 +7,7 @@ from .decorators import add_argument_switches
 from .completion import RepositoryDynamicCompletion, OwnOrgsDynamicCompletion
 
 
-class Repos(tpv.cli.Command):
+class Repo(tpv.cli.Command):
     """Manage repos
     """
     def __call__(self):
