@@ -15,7 +15,7 @@ from .user import Show as UserShow
 
 
 class Org(tpv.cli.Command):
-    """Manage organizations """
+    """Manage organisations """
 
     def __call__(self):
         user = user_type(None)

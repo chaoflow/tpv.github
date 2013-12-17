@@ -43,6 +43,7 @@ setup(name='tpv.nix',
       entry_points={
           'console_scripts': ['gh = tpv.github.cli:app'],
           'tpv.github.gh.commands': [
+              'help = tpv.github.cli:Help',
               'issue = tpv.github.cli.issue:Issue',
               'issue/list = tpv.github.cli.issue:List',
               'issue/show = tpv.github.cli.issue:Show',
