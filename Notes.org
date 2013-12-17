@@ -1,3 +1,5 @@
+#+TODO: TODO | DONE
+
 * Setitem
 to create new items different methods are possible.
 
@@ -33,6 +35,17 @@ issue = new.obj
 
 if issuenumber is not interesting, it's not much heavier like:
 repoissues[None] = { ... }
+* Pull requests
+** TODO Commits
+commits of a pull request can be accessed directly from git by adding 
+remote.origin.fetch=+refs/pull/*/head:refs/remotes/origin/pr/*
+to the origin section of .git/config. then,
+git log origin/pr/{number}
+shows the commits of the pull request number.
+
+so we should provide the means to add the extra branches and call git
+log from gh.
+
 * Completion
 ** Setup instructions
 zshrc or zshenv should contain (with adapted paths, where necessary)
