@@ -52,3 +52,16 @@ source update-completions.sh
 #+end_src
 because this also takes care of updating all function definitions
 already loaded into the shell environment.
+* Flo feedback
+** singular for subcommands analog to git
+gh issue  vs  gh issues
+** `gh org` to list all organizations I'm a member of
+** `gh org show` not specific to organizations, but also work for users
+`gh show #350` Show bug #350 in current repo?
+** `gh help` to be equivalent as gh --help
+only for toplevel as a convenience
+** `gh issue` to list all issues
+I remember you mentioning this as todo.
+** --repo to default to current repository
+** (for now) I would disable pager-support to get a feel when it would be handy
+** `gh issue list ... --mine` falsly requires argument
