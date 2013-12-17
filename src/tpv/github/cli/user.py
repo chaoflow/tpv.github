@@ -6,13 +6,6 @@ from .types import user_type
 from .decorators import add_argument_switches
 
 
-class User(tpv.cli.Command):
-    """Manage user
-    """
-    def __call__(self):
-        pass
-
-
 class Show(tpv.cli.Command):
     """Show users
     """
@@ -75,3 +68,8 @@ class Update(tpv.cli.Command):
     def __call__(self):
         self.user = user_type(authenticated_user())
         self.user.update(self.arguments)
+
+
+class User(Show):
+    '''Manage own user '''
+    pass
