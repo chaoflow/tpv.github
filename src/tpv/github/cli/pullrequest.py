@@ -15,7 +15,7 @@ from .completion import \
     dict(name="head", help=u"Filter pulls by head user and branch name in the format of user:ref-name. Example: github:new-script-format."),
     dict(name="base", help=u"Filter pulls by base branch name. Example: gh-pages.")
 ])
-@stdout_to_pager
+#@stdout_to_pager
 class List(tpv.cli.Command):
     """List pulls matching filter criteria
 

@@ -7,7 +7,7 @@ from .decorators import add_argument_switches
 from .completion import RepositoryDynamicCompletion, OwnOrgsDynamicCompletion
 
 
-@stdout_to_pager
+#@stdout_to_pager
 class List(tpv.cli.Command):
     """List repos
     """

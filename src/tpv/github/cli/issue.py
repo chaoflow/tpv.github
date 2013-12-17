@@ -21,7 +21,7 @@ from .completion import \
     dict(name="direction", help=u"The direction of the sort. Can be either asc or desc.", completion=ListCompletion("asc","desc")),
     dict(name="since", help=u"Only issues updated at or after this time are returned (YYYY-MM-DDTHH:MM:SSZ).")
 ])
-@stdout_to_pager
+#@stdout_to_pager
 class List(tpv.cli.Command):
     """List issues matching filter criteria
 
