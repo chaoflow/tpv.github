@@ -10,13 +10,6 @@ from .completion import \
     RepoChildIdDynamicCompletion
 
 
-class Pull(tpv.cli.Command):
-    """Manage pulls
-    """
-    def __call__(self):
-        pass
-
-
 @add_argument_switches([
     dict(name="state", help=u"Indicates the state of the pulls to return. Can be either open or closed.", completion=ListCompletion("open","closed")),
     dict(name="head", help=u"Filter pulls by head user and branch name in the format of user:ref-name. Example: github:new-script-format."),
@@ -191,6 +184,10 @@ class Update(tpv.cli.Command):
     def __call__(self, pullno):
         pull = pull_type(self.repo, pullno)
         pull.update(self.arguments)
+
+
+class Pull(List):
+    """Manage pulls """
 
 
 class Comment(tpv.cli.Command):

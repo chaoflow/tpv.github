@@ -3,7 +3,8 @@ import itertools
 import re
 
 from .github_base import \
-    URL_BASE, GhResource, GhCollection, \
+    URL_BASE, extract_repo_from_issue_url, \
+    GhResource, GhCollection, \
     github_request, github_request_paginated, \
     set_on_new_dict, authenticated_user
 
@@ -309,13 +310,11 @@ class GhUserIssues(GhRepoIssues):
         raise NotImplementedError("Can't add to collection.")
 
     def _instantiate_child_from_url(self, issueno, data):
-        m = re.match(URL_BASE + "/repos/(.+)/(.+)/issues/{}"
-                     .format(issueno),
-                     data["url"])
+        (user, repo) = extract_repo_from_issue_url(data["url"], issueno)
         return self.child_class(self,
                                 data=data,
-                                **{'user': m.group(1),
-                                   'repo': m.group(2),
+                                **{'user': user,
+                                   'repo': repo,
                                    'issueno': issueno})
 
     def search(self, **arguments):

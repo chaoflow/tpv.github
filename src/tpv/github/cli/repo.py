@@ -7,13 +7,6 @@ from .decorators import add_argument_switches
 from .completion import RepositoryDynamicCompletion, OwnOrgsDynamicCompletion
 
 
-class Repo(tpv.cli.Command):
-    """Manage repos
-    """
-    def __call__(self):
-        pass
-
-
 @stdout_to_pager
 class List(tpv.cli.Command):
     """List repos
@@ -42,6 +35,12 @@ Arguments:
         user = user_type(user)
         for name, repo in user["repos"].iteritems():
             self.print_repo(repo)
+
+
+class Repo(List):
+    """Manage repos """
+    def __call__(self):
+        super(Repo, self).__call__()
 
 
 @add_argument_switches([

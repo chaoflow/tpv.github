@@ -26,6 +26,12 @@ def authenticated_user():
     return config.get("github", "user")
 
 
+def extract_repo_from_issue_url(url, issueno):
+    m = re.match(URL_BASE + "/repos/(.+)/(.+)/issues/{}"
+                 .format(issueno), url)
+    return (m.group(1), m.group(2))
+
+
 def merge_dicts(*dicts):
     return dict(itertools.chain(*(d.iteritems() for d in dicts)))
 

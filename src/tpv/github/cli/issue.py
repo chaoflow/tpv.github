@@ -1,20 +1,13 @@
 import tpv.cli
 from aspects import stdout_to_pager
 
-from ..github import set_on_new_dict
+from ..github_base import set_on_new_dict, extract_repo_from_issue_url
 from .types import repo_type, issue_type, user_type
 from .decorators import add_argument_switches
 from tpv.cli import ListCompletion
 from .completion import \
     RepositoryDynamicCompletion, \
     RepoChildIdDynamicCompletion
-
-
-class Issue(tpv.cli.Command):
-    """Manage issues
-    """
-    def __call__(self):
-        pass
 
 
 @add_argument_switches([
@@ -59,10 +52,17 @@ completion of the options.
 
     def print_issue(self, issue):
         tmpl = u'''
-{cyanfont}{number}: {title}{normalfont}
+{cyanfont}{title}{normalfont} ({number})
+        '''.strip()+"\n"
+        if self.mine is not None and self.repo is None:
+            (user, repo) = extract_repo_from_issue_url(issue["url"],
+                                                       issue["number"])
+            tmpl += "Repo: {}/{}\n".format(user, repo)
+        tmpl += '''
 State: {state}
 Author: {user[login]}
         '''.strip()+"\n"
+
         if issue["assignee"] is not None:
             tmpl += "Assignee: {assignee[login]}\n"
 
@@ -211,6 +211,11 @@ class Update(tpv.cli.Command):
     def __call__(self, issueno):
         issue = issue_type(self.repo, issueno)
         issue.update(self.arguments)
+
+
+class Issue(List):
+    """Manage issues """
+    mine = "all"
 
 
 class Comment(tpv.cli.Command):
