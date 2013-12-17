@@ -15,6 +15,14 @@ class Github(tpv.cli.Command):
     def __call__(self):
         self.help()
 
+
+class Help(tpv.cli.Command):
+    """Show help """
+
+    def __call__(self):
+        self.parent.help()
+
+
 tpv.pkg_resources.load_entry_points("tpv.github.gh.commands", Github)
 
 
