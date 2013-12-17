@@ -102,3 +102,4 @@ or "location"?
 *** context
 **** current repository
 **** current user
+*** cli options
