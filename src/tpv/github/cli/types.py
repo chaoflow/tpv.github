@@ -87,3 +87,16 @@ def issue_type(repo, issueno):
     except KeyError:
         raise ValueError("Issue `{}` not found in repository `{}`."
                          .format(issueno, repo['full_name']))
+
+
+@DocPredicate
+def pull_type(repo, pullno):
+    """pullno"""
+    if not isinstance(repo, GhRepo):
+        repo = repo_type(repo)
+
+    try:
+        return repo["pulls"][pullno]
+    except KeyError:
+        raise ValueError("Pull request `{}` not found in repository `{}`."
+                         .format(pullno, repo['full_name']))
