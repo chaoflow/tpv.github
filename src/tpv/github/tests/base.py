@@ -4,6 +4,7 @@ import unittest
 import json
 from contextlib import contextmanager
 
+from .. import github_base
 from .. import github
 
 
@@ -45,15 +46,15 @@ class TestCase(unittest.TestCase):
                                request["response_body"],
                                request.get("response_extra_headers", dict()))
 
-        prev_request = github.github_request
+        prev_request = github_base.github_request
         prev_authenticated_user = github.authenticated_user
 
-        github.github_request = intercept
+        github_base.github_request = intercept
         github.authenticated_user = lambda: "octocat"
 
         yield intercept
 
-        github.github_request = prev_request
+        github_base.github_request = prev_request
         github.authenticated_user = prev_authenticated_user
 
         self.assertEqual(len(requests), 0)
