@@ -16,12 +16,18 @@ from .user import Show as UserShow
 
 class Org(tpv.cli.Command):
     """Manage organizations """
+
     def __call__(self):
-        pass
+        user = user_type(None)
+        print ", ".join(user["orgs"])
 
 
 class Show(UserShow):
     """Show Org """
+
+    @tpv.cli.completion(orgs=OwnOrgsDynamicCompletion())
+    def __call__(self, *orgs):
+        super(Show, self).__call__(*orgs)
 
 
 @add_argument_switches([
