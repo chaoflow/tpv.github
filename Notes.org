@@ -86,3 +86,19 @@ I remember you mentioning this as todo.
 ** `gh issue list ... --mine` falsly requires argument
 needs an argument to support multiple filters. there is no switch
 which has an optional argument.
+** `gh repo` to list
+*** all my repos
+*** all repos of the organization of the repo I am in at the moment?
+maybe better to have a parent directory for the organization with a
+config file that sets the organization.
+*** all repos of the entity specified `gh repo --xxx chaoflownet`
+Is there a github name for "organization" and "user"? "owner" maybe?
+or "location"?
+** config
+*** config files
+**** ~/.ghconfig
+**** parent directories
+**** current directory
+*** context
+**** current repository
+**** current user
