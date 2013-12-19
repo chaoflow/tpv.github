@@ -1,4 +1,4 @@
-#+TODO: TODO | DONE
+#+TODO: IDEA TODO | DONE
 
 * Setitem
 to create new items different methods are possible.
@@ -69,37 +69,98 @@ already loaded into the shell environment.
 ** DONE singular for subcommands analog to git
 gh issue  vs  gh issues
 ** DONE `gh org` to list all organizations I'm a member of
-** `gh org show` not specific to organizations, but also work for users
-gh org could show more information specific to organisations. this is
-still on the todo though.
+** IDEA `gh show` super command?
+*** `gh show #350` short for `gh org show #350`
 
-** `gh show #350` Show bug #350 in current repo?
+*** `gh show <user>` short for `gh user show <user>`
 
-isn't that: gh issue show 350
-do we want a free text short cut? # -> issueno, !
+*** `gh show +<organization>` short for `gh org show <organization>`
+
 ** DONE `gh help` to be equivalent as gh --help
 only for toplevel as a convenience
 ** DONE `gh issue` to list all issues
 I remember you mentioning this as todo.
 ** DONE --repo to default to current repository
 ** DONE (for now) I would disable pager-support to get a feel when it would be handy
-** `gh issue list ... --mine` falsly requires argument
+** IDEA `gh issue list ... --mine` falsly requires argument
 needs an argument to support multiple filters. there is no switch
 which has an optional argument.
-** `gh repo` to list
+** IDEA `gh repo` to list
 *** all my repos
 *** all repos of the organization of the repo I am in at the moment?
 maybe better to have a parent directory for the organization with a
 config file that sets the organization.
-*** all repos of the entity specified `gh repo --xxx chaoflownet`
+*** all repos of the entity specified `gh repo list chaoflownet`
 Is there a github name for "organization" and "user"? "owner" maybe?
 or "location"?
-** config
+** TODO config
 *** config files
 **** ~/.ghconfig
-**** parent directories
-**** current directory
+foo = 1
+bar = 1
+
+**** parent directories .ghconfig
+bar = 2
+baz = 2
+
+**** current directory .ghconfig
+baz = 3
+xyz = 3
+
+--> foo = 1, bar = 2, baz = 3, xyz = 3
+
 *** context
 **** current repository
-**** current user
-*** cli options
+
+*** cli options also via config
+[repo list]
+user = ...
+
+[issue]
+... = ...
+
+[issue list]
+assignee = ...
+
+*** dict that gets items from list of dicts
+readonly for now
+
+*** show configured values in help text
+** TODO cli flag to print http requests and responses
+** TODO `gh issue list` without args throws exception
+% ./bin/gh issue list       
+Traceback (most recent call last):
+  File "./bin/gh", line 9, in <module>
+    load_entry_point('tpv.nix==0', 'console_scripts', 'gh')()
+  File "/home/cfl/dev/tpv/plumbum/plumbum/cli/application.py", line 385, in run
+    inst, retcode = subapp.run(argv, exit = False)
+  File "/home/cfl/dev/tpv/plumbum/plumbum/cli/application.py", line 385, in run
+    inst, retcode = subapp.run(argv, exit = False)
+  File "/home/cfl/dev/tpv/plumbum/plumbum/cli/application.py", line 381, in run
+    retcode = inst.main(*tailargs)
+  File "/home/cfl/dev/tpv/tpv.github/src/tpv/github/cli/issue.py", line 74, in __call__
+    repo = repo_type(self.repo)
+  File "/home/cfl/dev/tpv/tpv.cli/src/tpv/cli/__init__.py", line 82, in __call__
+    return self.func(*args, **kwargs)
+  File "/home/cfl/dev/tpv/tpv.github/src/tpv/github/cli/types.py", line 21, in repo_type
+    raise ValueError("Remote origin is not from github.")
+ValueError: Remote origin is not from github.
+
+`gh issue list` to be equivalent to `gh issue`
+
+% git remote -v
+origin	git@github.com:chaoflownet/tpv.github (fetch)
+origin	git@github.com:chaoflownet/tpv.github (push)
+
+** TODO `gh issue`
+*** show only open issues (--state defaults to open)
+*** short format
+#id Title @assignee
+
+*** verbose format
+the current default format
+** TODO disable colors when stdout is redirected
+** TODO investigate plumbum to support naming PARAM and VALUE
+--mentioned <user>
+--repo <user>/<repo>
+
