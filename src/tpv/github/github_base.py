@@ -1,6 +1,7 @@
 from requests import request
 import json
 import os
+import sys
 import ConfigParser
 import re
 import itertools
@@ -49,11 +50,34 @@ def github_request(method, urlpath, data=None, params=None):
     - `method`: one of "HEAD", "GET", "POST", "PATCH", "DELETE"
     - `urlpath`: the path part of the request url, i.e. /users/coroa
     """
-    return request(method, URL_BASE + urlpath,
-                   auth=(config.get("github", "user"),
-                         config.get("github", "token")),
-                   data=None if data is None else json.dumps(data),
-                   params=params)
+    req = request(method, URL_BASE + urlpath,
+                  auth=(config.get("github", "user"),
+                        config.get("github", "token")),
+                  data=None
+                  if data is None
+                  else json.dumps(data),
+                  params=params)
+
+    if config.has_option("github", "debug") and \
+       config.getint("github", "debug") >= 2:
+        sys.stderr.write(('''
+>>> Request
+{method} {url}
+{reqbody}
+>>> Response
+{status}
+{respbody}
+        '''.strip()+"\n").format(
+            method=req.request.method,
+            url=req.request.url,
+            reqbody=req.request.body,
+            status=req.headers["status"],
+            respbody=json.dumps(req.json(),
+                                indent=2,
+                                separators=(',', ': '))
+        ))
+
+    return req
 
 
 def github_request_paginated(method, urlpath, params=None):
@@ -82,11 +106,7 @@ def github_request_length(urlpath):
         return 0
 
 
-class GhResource(dict):
-    @property
-    def url_template(self):
-        raise NotImplementedError()
-
+class GhBase(dict):
     def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
         self._parameters = kwargs
@@ -97,12 +117,38 @@ class GhResource(dict):
         for k, v in self._parameters.iteritems():
             setattr(self, "_" + k, v)
 
+    def __repr__(self):
+        return "<{} [{}]>".format(
+            self.__class__.__name__,
+            " ".join("{}={}".format(k, v)
+                     for k, v in self._parameters.iteritems())
+        )
+
+    def _debug(self, func, *args):
+        if config.has_option("github", "debug") and \
+           config.getint("github", "debug") >= 1:
+            sys.stderr.write("{}.{}({})\n".format(self, func, ", ".join(args)))
+
+
+class GhResource(GhBase):
+    @property
+    def url_template(self):
+        raise NotImplementedError()
+
+    def __init__(self, parent, data=None, **kwargs):
+        super(GhResource, self).__init__(parent, data, **kwargs)
+
         if data is None:
             url = self.url_template.format(**self._parameters)
             data = github_request("GET", url).json()
         super(GhResource, self).update(data)
 
+    def __getitem__(self, key):
+        self._debug("__getitem__", key)
+        return super(GhResource, self).__getitem__(key)
+
     def __setitem__(self, key, value):
+        self._debug("__setitem__", key, value)
         self.update({key: value})
 
     def update(self, data):
@@ -128,7 +174,7 @@ class GhResource(dict):
         super(GhResource, self).update(req.json())
 
 
-class GhCollection(object):
+class GhCollection(GhBase):
 
     @property
     def list_url_template(self):
@@ -156,16 +202,6 @@ class GhCollection(object):
 
     add_method = "POST"
     # add_required_arguments = [ "name", "..." ... ]
-
-    def __init__(self, parent, data=None, **kwargs):
-        self._parent = parent
-        self._parameters = kwargs
-
-        if not self._parameters and self._parent:
-            self._parameters = self._parent._parameters
-
-        for k, v in self._parameters.iteritems():
-            setattr(self, "_" + k, v)
 
     def search(self, **arguments):
         return ((x[self.list_key],
@@ -205,6 +241,8 @@ class GhCollection(object):
 
     def __getitem__(self, key):
         """Return the GhResource object for `key` """
+        self._debug("__getitem__", key)
+
         parameters = set_on_new_dict(self._parameters,
                                      self.child_parameter,
                                      key)
@@ -217,6 +255,9 @@ class GhCollection(object):
         return self.child_class(self, data=req.json(), **parameters)
 
     def add(self, **arguments):
+        self._debug("add", *("{}={}".format(k, v)
+                             for k, v in arguments.iteritems()))
+
         # check if all required arguments are provided
         for required_arg in getattr(self, 'add_required_arguments', []):
             if required_arg not in arguments:
@@ -254,6 +295,8 @@ class GhCollection(object):
             #     return self.child_class(parent=self, **tmpl_vars)
 
     def __delitem__(self, key):
+        self._debug("__delitem__", key)
+
         tmpl_vars = set_on_new_dict(self._parameters,
                                     self.child_parameter, key)
         url = self.delete_url_template.format(**tmpl_vars)

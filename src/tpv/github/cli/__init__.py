@@ -4,6 +4,8 @@
 import tpv.cli
 import tpv.pkg_resources
 
+from ..github_base import config
+
 
 class Github(tpv.cli.Command):
     """Prototypical unified github command line.
@@ -11,6 +13,10 @@ class Github(tpv.cli.Command):
     Come join the discussion!
     """
     VERSION = "v0"
+
+    @tpv.cli.switch(["-d", "--debug"], argtype=None, list=True)
+    def debug(self, value):
+        config.set("github", "debug", str(len(value)))
 
     def __call__(self):
         self.help()

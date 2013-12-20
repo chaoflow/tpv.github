@@ -126,7 +126,9 @@ assignee = ...
 readonly for now
 
 *** show configured values in help text
-** TODO cli flag to print http requests and responses
+** DONE cli flag to print http requests and responses
+-d (--debug) for method calls in backend
+-dd (--debug --debug) for method calls and http requests and responses
 ** TODO `gh issue list` without args throws exception
 % ./bin/gh issue list       
 Traceback (most recent call last):
