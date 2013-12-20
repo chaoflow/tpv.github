@@ -35,7 +35,7 @@ completion of the options.
                               completion=RepositoryDynamicCompletion())
 
     mine = tpv.cli.SwitchAttr("--mine", str,
-                              help="List my issues",
+                              help="List my issues (all/assigned/created/mentioned/subscribed)",
                               completion=ListCompletion("all",
                                                         "assigned",
                                                         "created",
