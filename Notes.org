@@ -1,4 +1,4 @@
-#+TODO: IDEA TODO | DONE
+#+TODO: IDEA(i) TODO(t) | FEED(f) DONE(d)
 
 * Setitem
 to create new items different methods are possible.
@@ -162,7 +162,9 @@ origin	git@github.com:chaoflownet/tpv.github (push)
 *** verbose format
 the current default format
 ** TODO disable colors when stdout is redirected
-** TODO investigate plumbum to support naming PARAM and VALUE
+** FEED investigate plumbum to support naming PARAM and VALUE
 --mentioned <user>
 --repo <user>/<repo>
 
+plumbum automatically uppercases the argname. <USER>/<REPO> looks VERY
+heavy, so we decided to just hide this information alltogether.
