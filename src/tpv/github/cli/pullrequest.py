@@ -35,7 +35,7 @@ completion of the options.
     def print_pull(self, pull):
 
         tmpl = u'''
-{cyanfont}{title} ({number}){normalfont}
+#{number} {cyanfont}{title}{normalfont}
 State: {state}
 Head: {base[label]}
 Base: {head[label]}
@@ -77,7 +77,7 @@ Path: {path}
 
         for comment in hunk:
             commenttmpl = u'''
-{cyanfont}{user[login]}{normalfont} ({id})
+#{id} {cyanfont}{user[login]}{normalfont}
 updated: {updated_at}
 {body}
             '''.strip()+"\n"
@@ -88,7 +88,7 @@ updated: {updated_at}
 
     def print_comment(self, comment):
         tmpl = u'''
-{cyanfont}{user[login]}{normalfont} ({id})
+#{id} {cyanfont}{user[login]}{normalfont}
 updated: {updated_at}
 {body}
         '''.strip()+"\n"
@@ -98,7 +98,7 @@ updated: {updated_at}
 
     def print_pull(self, pull):
         tmpl = u'''
-{cyanfont}{title} ({number}){normalfont}
+#{number} {cyanfont}{title}{normalfont}
 State: {state}
 Head: {base[label]}
 Base: {head[label]}
@@ -205,7 +205,7 @@ class CommentList(tpv.cli.Command):
 
     def print_comment(self, comment):
         tmpl = u'''
-{cyanfont}{user[login]}{normalfont} ({id})
+#{id} {cyanfont}{user[login]}{normalfont}
 updated: {updated_at}
 {body}
         '''.strip()+"\n"

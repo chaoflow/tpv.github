@@ -138,7 +138,7 @@ class Show(tpv.cli.Command):
 
     def print_comment(self, comment):
         tmpl = u'''
-{cyanfont}{user[login]}{normalfont} ({id})
+#{id} {cyanfont}{user[login]}{normalfont}
 updated: {updated_at}
 {body}
         '''.strip()+"\n"
@@ -148,7 +148,7 @@ updated: {updated_at}
 
     def print_issue(self, issue):
         tmpl = u'''
-{cyanfont}{number}: {title}{normalfont}
+#{number} {cyanfont}{title}{normalfont}
 State: {state}
 Author: {user[login]}
 Updated: {updated_at}
@@ -258,7 +258,7 @@ class CommentList(tpv.cli.Command):
 
     def print_comment(self, comment):
         tmpl = u'''
-{cyanfont}{user[login]}{normalfont} ({id})
+#{id} {cyanfont}{user[login]}{normalfont}
 updated: {updated_at}
 {body}
         '''.strip()+"\n"
