@@ -129,7 +129,7 @@ readonly for now
 ** DONE cli flag to print http requests and responses
 -d (--debug) for method calls in backend
 -dd (--debug --debug) for method calls and http requests and responses
-** TODO `gh issue list` without args throws exception
+** DONE `gh issue list` without args throws exception
 % ./bin/gh issue list       
 Traceback (most recent call last):
   File "./bin/gh", line 9, in <module>
@@ -154,7 +154,7 @@ ValueError: Remote origin is not from github.
 origin	git@github.com:chaoflownet/tpv.github (fetch)
 origin	git@github.com:chaoflownet/tpv.github (push)
 
-** TODO `gh issue`
+** DONE `gh issue`
 *** show only open issues (--state defaults to open)
 *** short format
 #id Title @assignee

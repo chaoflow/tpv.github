@@ -12,7 +12,7 @@ from .completion import \
 
 @add_argument_switches([
     dict(name="milestone", help=u"milestone number or '*' for any"),
-    dict(name="state", help=u"Indicates the state of the issues to return. Can be either open or closed.", completion=ListCompletion("open","closed")),
+    dict(name="state", help=u"Indicates the state of the issues to return. Can be either all, open or closed.", completion=ListCompletion("all", "open","closed")),
     dict(name="assignee", help=u"Can be the name of a user. Pass in none for issues with no assigned user, and * for issues assigned to any user."),
     dict(name="creator", help=u"The user that created the issue"),
     dict(name="mentioned", help=u"A user that's mentioned in the issue"),
@@ -30,6 +30,9 @@ we accept a list of nondescript arguments, which blocks proper
 completion of the options.
 
     """
+    verbose = tpv.cli.Flag(["--verbose", "-v"],
+                           help="Print more details on the issues")
+
     repo = tpv.cli.SwitchAttr("--repo", str,
                               help="The repository <user>/<repo>",
                               completion=RepositoryDynamicCompletion())
@@ -51,9 +54,26 @@ completion of the options.
         self.arguments = dict()
 
     def print_issue(self, issue):
-        tmpl = u'''
-{cyanfont}{title}{normalfont} ({number})
-        '''.strip()+"\n"
+        if self.verbose:
+            self.print_issue_long(issue)
+        else:
+            self.print_issue_short(issue)
+
+    def print_issue_short(self, issue):
+        tmpl = u"#{number}"
+        if self.mine is not None and self.repo is None:
+            (user, repo) = extract_repo_from_issue_url(issue["url"],
+                                                       issue["number"])
+            tmpl += " :{}/{}".format(user, repo)
+        tmpl += " {cyanfont}{title}{normalfont}"
+        if issue["assignee"] is not None:
+            tmpl += " @{assignee[login]}"
+
+        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
+                          **issue).encode('utf-8')
+
+    def print_issue_long(self, issue):
+        tmpl = u"#{number} {cyanfont}{title}{normalfont}\n"
         if self.mine is not None and self.repo is None:
             (user, repo) = extract_repo_from_issue_url(issue["url"],
                                                        issue["number"])
@@ -70,6 +90,11 @@ Author: {user[login]}
                           **issue).encode('utf-8')
 
     def __call__(self):
+        if "state" not in self.arguments:
+            self.arguments["state"] = "open"
+        elif self.arguments["state"] == "all":
+            del self.arguments["state"]
+
         if self.mine is None:
             repo = repo_type(self.repo)
             issues = repo["issues"].search(**self.arguments)
