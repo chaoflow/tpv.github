@@ -13,12 +13,15 @@ def repo_type(repo_name, user_fallback=None):
     if repo_name is None:
         # fetch from git repo
         url = git["config", "remote.origin.url"]().rstrip('\n')
-        if url.startswith("git@github.com:") and url.endswith(".git"):
-            repo_name = url[len("git@github.com:"):-len(".git")]
-        elif url.startswith("https://github.com/") and url.endswith(".git"):
-            repo_name = url[len("https://github.com/"):-len(".git")]
+        if url.startswith("git@github.com:"):
+            repo_name = url[len("git@github.com:"):]
+        elif url.startswith("https://github.com/"):
+            repo_name = url[len("https://github.com/"):]
         else:
             raise ValueError("Remote origin is not from github.")
+
+        if repo_name.endswith(".git"):
+            repo_name = repo_name[:-len(".git")]
 
     if '/' not in repo_name:
         user = authenticated_user() \
