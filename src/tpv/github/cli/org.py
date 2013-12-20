@@ -67,7 +67,7 @@ class MemList(tpv.cli.Command):
     # TODO to complete teams one would have to adapt the
     # plumbum.cli.completions.complete method so that it passes the
     # tailargs to the completion objects.
-    team = tpv.cli.SwitchAttr("--team", argtype=str,
+    team = tpv.cli.SwitchAttr("--team", argtype=str, argname="",
                               help="Team from which to list the members")
 
     def print_member(self, member):
@@ -100,7 +100,7 @@ site_admin: {site_admin}
 class MemAdd(tpv.cli.Command):
     '''Add members to the team of an organisation '''
 
-    team = tpv.cli.SwitchAttr("--team", argtype=str,
+    team = tpv.cli.SwitchAttr("--team", argtype=str, argname="",
                               help="Team to which to add members",
                               completion=TeamDynamicCompletion())
 
@@ -121,7 +121,7 @@ class MemAdd(tpv.cli.Command):
 class MemRemove(tpv.cli.Command):
     '''Remove members from an organisation or teams of an organisation '''
 
-    team = tpv.cli.SwitchAttr("--team", argtype=str,
+    team = tpv.cli.SwitchAttr("--team", argtype=str, argname="",
                               help="Team from which to list the members",
                               completion=TeamDynamicCompletion())
 

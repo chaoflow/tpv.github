@@ -22,6 +22,7 @@ def add_argument_switches(parameters):
             else:
                 f = tpv.cli.switch(param["flagname"],
                                    argtype=param.get("type", str),
+                                   argname="",
                                    help=param.get("help"),
                                    list=param.get("list", False),
                                    completion=param.get("completion", None),

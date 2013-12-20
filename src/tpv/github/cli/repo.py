@@ -66,7 +66,7 @@ class Repo(List):
 class Add(tpv.cli.Command):
     """Add a new Repo
     """
-    org = tpv.cli.SwitchAttr("--org", str,
+    org = tpv.cli.SwitchAttr("--org", str, argname="",
                              help="Organization owning the repository",
                              completion=OwnOrgsDynamicCompletion())
 
