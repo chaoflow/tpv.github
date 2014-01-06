@@ -3,7 +3,7 @@ from aspects import stdout_to_pager
 
 from ..github_base import set_on_new_dict, extract_repo_from_issue_url
 from .types import repo_type, issue_type, user_type
-from .decorators import add_argument_switches
+from .switches import add_argument_switches
 from tpv.cli import ListCompletion
 from .completion import \
     RepositoryDynamicCompletion, \

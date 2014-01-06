@@ -3,7 +3,7 @@ from plumbum.cmd import git
 
 from .types import user_type, repo_type
 from .aspects import stdout_to_pager
-from .decorators import add_argument_switches
+from .switches import add_argument_switches
 from .completion import RepositoryDynamicCompletion, OwnOrgsDynamicCompletion
 
 

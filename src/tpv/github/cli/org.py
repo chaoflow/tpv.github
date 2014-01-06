@@ -4,7 +4,7 @@ import tpv.cli
 from tpv.cli import ListCompletion
 
 from .types import user_type, org_type, team_type, repo_type
-from .decorators import add_argument_switches
+from .switches import add_argument_switches
 from .completion import \
     OwnOrgsDynamicCompletion, \
     RepositoryDynamicCompletion, \

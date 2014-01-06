@@ -3,7 +3,7 @@ import tpv.cli
 
 from ..github import authenticated_user
 from .types import user_type
-from .decorators import add_argument_switches
+from .switches import add_argument_switches
 
 
 class Show(tpv.cli.Command):
