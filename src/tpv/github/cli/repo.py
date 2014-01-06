@@ -3,7 +3,7 @@ from plumbum.cmd import git
 
 from .types import user_type, repo_type
 from .aspects import stdout_to_pager
-from .switches import add_argument_switches
+from .switches import add_argument_switches, ConfigSwitchAttr
 from .completion import RepositoryDynamicCompletion, OwnOrgsDynamicCompletion
 
 
@@ -66,13 +66,9 @@ class Repo(List):
 class Add(tpv.cli.Command):
     """Add a new Repo
     """
-    org = tpv.cli.SwitchAttr("--org", str, argname="",
-                             help="Organization owning the repository",
-                             completion=OwnOrgsDynamicCompletion())
-
-    def __init__(self, *args, **kwargs):
-        tpv.cli.Command.__init__(self, *args, **kwargs)
-        self.arguments = dict()
+    org = ConfigSwitchAttr("--org", str, argname="",
+                           help="Organization owning the repository",
+                           completion=OwnOrgsDynamicCompletion())
 
     def __call__(self, name=None):
         user = user_type(self.org)
@@ -108,9 +104,6 @@ class Add(tpv.cli.Command):
 class Update(tpv.cli.Command):
     """Update a Repo
     """
-    def __init__(self, *args, **kwargs):
-        tpv.cli.Command.__init__(self, *args, **kwargs)
-        self.arguments = dict()
 
     @tpv.cli.completion(repo=RepositoryDynamicCompletion())
     def __call__(self, repo=None):

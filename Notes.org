@@ -1,4 +1,4 @@
-#+TODO: IDEA(i) TODO(t) | FEED(f) DONE(d)
+#+TODO: TODO(t) IDEA(i) | FEED(f) DONE(d)
 
 * Setitem
 to create new items different methods are possible.
@@ -94,7 +94,7 @@ config file that sets the organization.
 Is there a github name for "organization" and "user"? "owner" maybe?
 or "location"?
 ** TODO config
-*** config files
+*** DONE config files
 **** ~/.ghconfig
 foo = 1
 bar = 1
@@ -109,10 +109,10 @@ xyz = 3
 
 --> foo = 1, bar = 2, baz = 3, xyz = 3
 
-*** context
+*** DONE context
 **** current repository
 
-*** cli options also via config
+*** DONE cli options also via config
 [repo list]
 user = ...
 
@@ -122,7 +122,7 @@ user = ...
 [issue list]
 assignee = ...
 
-*** dict that gets items from list of dicts
+*** TODO dict that gets items from list of dicts
 readonly for now
 
 *** show configured values in help text

@@ -4,7 +4,7 @@ import tpv.cli
 from tpv.cli import ListCompletion
 
 from .types import user_type, org_type, team_type, repo_type
-from .switches import add_argument_switches
+from .switches import add_argument_switches, ConfigSwitchAttr
 from .completion import \
     OwnOrgsDynamicCompletion, \
     RepositoryDynamicCompletion, \
@@ -45,10 +45,6 @@ class Show(UserShow):
 class Update(tpv.cli.Command):
     """Update organisation info of the organisation <org> """
 
-    def __init__(self, *args, **kwargs):
-        tpv.cli.Command.__init__(self, *args, **kwargs)
-        self.arguments = dict()
-
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion())
     def __call__(self, org):
         org = org_type(org)
@@ -67,8 +63,8 @@ class MemList(tpv.cli.Command):
     # TODO to complete teams one would have to adapt the
     # plumbum.cli.completions.complete method so that it passes the
     # tailargs to the completion objects.
-    team = tpv.cli.SwitchAttr("--team", argtype=str, argname="",
-                              help="Team from which to list the members")
+    team = ConfigSwitchAttr("--team", argtype=str, argname="",
+                            help="Team from which to list the members")
 
     def print_member(self, member):
         tmpl = u"""
@@ -100,9 +96,9 @@ site_admin: {site_admin}
 class MemAdd(tpv.cli.Command):
     '''Add members to the team of an organisation '''
 
-    team = tpv.cli.SwitchAttr("--team", argtype=str, argname="",
-                              help="Team to which to add members",
-                              completion=TeamDynamicCompletion())
+    team = ConfigSwitchAttr("--team", argtype=str, argname="",
+                            help="Team to which to add members",
+                            completion=TeamDynamicCompletion())
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion())
     def __call__(self, org, *users):
@@ -121,9 +117,9 @@ class MemAdd(tpv.cli.Command):
 class MemRemove(tpv.cli.Command):
     '''Remove members from an organisation or teams of an organisation '''
 
-    team = tpv.cli.SwitchAttr("--team", argtype=str, argname="",
-                              help="Team from which to list the members",
-                              completion=TeamDynamicCompletion())
+    team = ConfigSwitchAttr("--team", argtype=str, argname="",
+                            help="Team from which to list the members",
+                            completion=TeamDynamicCompletion())
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
                         users=TeamOrgMembersDynamicCompletion())
@@ -194,10 +190,6 @@ members: {members}
 ])
 class TeamAdd(tpv.cli.Command):
     """Add a team to an organisation """
-
-    def __init__(self, *args, **kwargs):
-        tpv.cli.Command.__init__(self, *args, **kwargs)
-        self.arguments = dict()
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
                         team=TeamDynamicCompletion())

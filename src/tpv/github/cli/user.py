@@ -61,10 +61,6 @@ class Update(tpv.cli.Command):
     """Update user info of the authenticated user
     """
 
-    def __init__(self, *args, **kwargs):
-        tpv.cli.Command.__init__(self, *args, **kwargs)
-        self.arguments = dict()
-
     def __call__(self):
         self.user = user_type(authenticated_user())
         self.user.update(self.arguments)

@@ -2,7 +2,7 @@ from requests import request
 import json
 import os
 import sys
-import ConfigParser
+from ConfigParser import ConfigParser
 import re
 import itertools
 
@@ -19,8 +19,23 @@ URL_BASE = 'https://api.github.com'
 # where the personal access token can be generated with "Create new
 # token" on https://github.com/settings/applications.
 
-config = ConfigParser.ConfigParser()
-config.read(os.path.join(os.environ['HOME'], ".ghconfig"))
+
+class RecursiveConfigParser(ConfigParser):
+    def read(self, basename):
+        files = []
+        home = os.path.expanduser("~")
+        path = os.getcwd()
+
+        while path and path != home:
+            files.append(os.path.join(path, basename))
+            path = path[:path.rfind(os.path.sep)]
+
+        files.append(os.path.join(home, basename))
+
+        return ConfigParser.read(self, reversed(files))
+
+config = RecursiveConfigParser()
+config.read(".ghconfig")
 
 
 def authenticated_user():

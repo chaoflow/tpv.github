@@ -1,9 +1,10 @@
+
 import tpv.cli
 from aspects import stdout_to_pager
 
 from ..github_base import set_on_new_dict, extract_repo_from_issue_url
 from .types import repo_type, issue_type, user_type
-from .switches import add_argument_switches
+from .switches import add_argument_switches, ConfigSwitchAttr
 from tpv.cli import ListCompletion
 from .completion import \
     RepositoryDynamicCompletion, \
@@ -33,25 +34,21 @@ completion of the options.
     verbose = tpv.cli.Flag(["--verbose", "-v"],
                            help="Print more details on the issues")
 
-    repo = tpv.cli.SwitchAttr("--repo", str, argname="",
-                              help="The repository <user>/<repo>",
-                              completion=RepositoryDynamicCompletion())
+    repo = ConfigSwitchAttr("--repo", str, argname="",
+                            help="The repository <user>/<repo>",
+                            completion=RepositoryDynamicCompletion())
 
-    mine = tpv.cli.SwitchAttr("--mine", str, argname="",
-                              help="List my issues (all/assigned/created/mentioned/subscribed)",
-                              completion=ListCompletion("all",
-                                                        "assigned",
-                                                        "created",
-                                                        "mentioned",
-                                                        "subscribed"),
-                              excludes=("--milestone",
-                                        "--assignee",
-                                        "--creator",
-                                        "--mentioned"))
-
-    def __init__(self, *args):
-        tpv.cli.Command.__init__(self, *args)
-        self.arguments = dict()
+    mine = ConfigSwitchAttr("--mine", str, argname="",
+                            help="List my issues (all/assigned/created/mentioned/subscribed)",
+                            completion=ListCompletion("all",
+                                                      "assigned",
+                                                      "created",
+                                                      "mentioned",
+                                                      "subscribed"),
+                            excludes=("--milestone",
+                                      "--assignee",
+                                      "--creator",
+                                      "--mentioned"))
 
     def print_issue(self, issue):
         if self.verbose:
@@ -128,9 +125,9 @@ Author: {user[login]}
 class Show(tpv.cli.Command):
     """Show a list of issues by their issuenumber """
 
-    repo = tpv.cli.SwitchAttr("--repo", str, argname="",
-                              help="The repository <user>/<repo>",
-                              completion=RepositoryDynamicCompletion())
+    repo = ConfigSwitchAttr("--repo", str, argname="",
+                            help="The repository <user>/<repo>",
+                            completion=RepositoryDynamicCompletion())
 
     with_comments = tpv.cli.Flag("--no-comments",
                                  help="Don't print comments",
@@ -193,13 +190,9 @@ Updated: {updated_at}
 class Add(tpv.cli.Command):
     """Add a new issue """
 
-    repo = tpv.cli.SwitchAttr("--repo", str, argname="",
-                              help="The repository <user>/<repo>",
-                              completion=RepositoryDynamicCompletion())
-
-    def __init__(self, *args):
-        tpv.cli.Command.__init__(self, *args)
-        self.arguments = dict()
+    repo = ConfigSwitchAttr("--repo", str, argname="",
+                            help="The repository <user>/<repo>",
+                            completion=RepositoryDynamicCompletion())
 
     def __call__(self):
         self.repo = repo_type(self.repo)
@@ -224,13 +217,9 @@ class Add(tpv.cli.Command):
 class Update(tpv.cli.Command):
     """Update an issue """
 
-    repo = tpv.cli.SwitchAttr("--repo", str, argname="",
-                              help="The repository <user>/<repo>",
-                              completion=RepositoryDynamicCompletion())
-
-    def __init__(self, *args):
-        tpv.cli.Command.__init__(self, *args)
-        self.arguments = dict()
+    repo = ConfigSwitchAttr("--repo", str, argname="",
+                            help="The repository <user>/<repo>",
+                            completion=RepositoryDynamicCompletion())
 
     @tpv.cli.completion(issueno=RepoChildIdDynamicCompletion("issues"))
     def __call__(self, issueno):
@@ -252,9 +241,9 @@ class Comment(tpv.cli.Command):
 class CommentList(tpv.cli.Command):
     """List comments of an issue """
 
-    repo = tpv.cli.SwitchAttr("--repo", str, argname="",
-                              help="The repository <user>/<repo>",
-                              completion=RepositoryDynamicCompletion())
+    repo = ConfigSwitchAttr("--repo", str, argname="",
+                            help="The repository <user>/<repo>",
+                            completion=RepositoryDynamicCompletion())
 
     def print_comment(self, comment):
         tmpl = u'''
@@ -277,10 +266,10 @@ updated: {updated_at}
 class CommentAdd(tpv.cli.Command):
     """Add a comment """
 
-    repo = tpv.cli.SwitchAttr("--repo", str, argname="",
-                              help="The repository <user>/<repo>",
-                              completion=RepositoryDynamicCompletion())
-    text = tpv.cli.SwitchAttr("--text", str, argname="", help=u"The comment.")
+    repo = ConfigSwitchAttr("--repo", str, argname="",
+                            help="The repository <user>/<repo>",
+                            completion=RepositoryDynamicCompletion())
+    text = ConfigSwitchAttr("--text", str, argname="", help=u"The comment.")
 
     @tpv.cli.completion(issueno=RepoChildIdDynamicCompletion("issues"))
     def __call__(self, issueno, text=None):
@@ -294,10 +283,10 @@ class CommentAdd(tpv.cli.Command):
 class CommentUpdate(tpv.cli.Command):
     """Edits a comment """
 
-    repo = tpv.cli.SwitchAttr("--repo", str, argname="",
-                              help="The repository <user>/<repo>",
-                              completion=RepositoryDynamicCompletion())
-    text = tpv.cli.SwitchAttr("--text", str, argname="", help=u"The comment.")
+    repo = ConfigSwitchAttr("--repo", str, argname="",
+                            help="The repository <user>/<repo>",
+                            completion=RepositoryDynamicCompletion())
+    text = ConfigSwitchAttr("--text", str, argname="", help=u"The comment.")
 
     @tpv.cli.completion(commentid=RepoChildIdDynamicCompletion("comments"))
     def __call__(self, commentid, text=None):
@@ -311,9 +300,9 @@ class CommentUpdate(tpv.cli.Command):
 class CommentRemove(tpv.cli.Command):
     """Removes a comment """
 
-    repo = tpv.cli.SwitchAttr("--repo", str, argname="",
-                              help="The repository <user>/<repo>",
-                              completion=RepositoryDynamicCompletion())
+    repo = ConfigSwitchAttr("--repo", str, argname="",
+                            help="The repository <user>/<repo>",
+                            completion=RepositoryDynamicCompletion())
 
     @tpv.cli.completion(commentid=RepoChildIdDynamicCompletion("comments"))
     def __call__(self, commentid):
