@@ -36,7 +36,7 @@ def add_argument_switches(parameters):
 
             setattr(cls, param["name"], f)
 
-            arguments[param["flagname"][2:]] = param["name"]
+            arguments[param["flagname"][2:]] = (param["name"], f)
 
         init_func = getattr(cls, "__init__")
 
@@ -47,10 +47,16 @@ def add_argument_switches(parameters):
                 Command.__init__(self, *args)
 
             if config.has_section(self.PROGNAME):
+                def get_value_and_set_help(option, func):
+                    value = config.get(self.PROGNAME, option)
+                    self._switches_by_func[func].help += "; configured to '{}'".format(value)
+                    return value
+
                 self.arguments = dict(
-                    (arguments[option], config.get(self.PROGNAME, option))
+                    (name, get_value_and_set_help(option, func))
                     for option in config.options(self.PROGNAME)
                     if option in arguments
+                    for name, func in (arguments[option],)
                     )
             else:
                 self.arguments = dict()
@@ -59,8 +65,6 @@ def add_argument_switches(parameters):
 
         return cls
     return deco
-
-
 
 
 class ConfigSwitchAttr(SwitchAttr):

@@ -1,6 +1,7 @@
 import tpv.cli
 from plumbum.cmd import git
 
+from . import Command
 from .types import user_type, repo_type
 from .aspects import stdout_to_pager
 from .switches import add_argument_switches, ConfigSwitchAttr
@@ -8,7 +9,7 @@ from .completion import RepositoryDynamicCompletion, OwnOrgsDynamicCompletion
 
 
 #@stdout_to_pager
-class List(tpv.cli.Command):
+class List(Command):
     """List repos
     """
     def print_repo(self, repo):
@@ -63,7 +64,7 @@ class Repo(List):
     dict(name="gitignore_template", type=str,
          help="Desired language or platform .gitignore template to apply")
 ])
-class Add(tpv.cli.Command):
+class Add(Command):
     """Add a new Repo
     """
     org = ConfigSwitchAttr("--org", str, argname="",
@@ -101,7 +102,7 @@ class Add(tpv.cli.Command):
     dict(name="gitignore_template", type=str,
          help="Desired language or platform .gitignore template to apply")
 ])
-class Update(tpv.cli.Command):
+class Update(Command):
     """Update a Repo
     """
 

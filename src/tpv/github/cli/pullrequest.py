@@ -1,6 +1,7 @@
 import tpv.cli
 from aspects import stdout_to_pager
 
+from . import Command
 from ..github import set_on_new_dict
 from .types import repo_type, pull_type, user_type
 from .switches import add_argument_switches, ConfigSwitchAttr
@@ -16,7 +17,7 @@ from .completion import \
     dict(name="base", help=u"Filter pulls by base branch name. Example: gh-pages.")
 ])
 #@stdout_to_pager
-class List(tpv.cli.Command):
+class List(Command):
     """List pulls matching filter criteria
 
 The use of the stdout_to_pager aspect confuses plumbum into thinking
@@ -50,7 +51,7 @@ Updated at: {updated_at}
             self.print_pull(pull)
 
 
-class Show(tpv.cli.Command):
+class Show(Command):
     """Show a list of pulls by their pullnumber """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -140,7 +141,7 @@ Updated at: {updated_at}
     dict(name="body", flagname="--description",
          help=u"The contents of the pull."),
 ])
-class Add(tpv.cli.Command):
+class Add(Command):
     """Add a new pull """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -161,7 +162,7 @@ class Add(tpv.cli.Command):
          help=u"State of the pull (open/closed).",
          completion=ListCompletion("open", "closed"))
 ])
-class Update(tpv.cli.Command):
+class Update(Command):
     """Update a pull """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -178,13 +179,13 @@ class Pull(List):
     """Manage pulls """
 
 
-class Comment(tpv.cli.Command):
+class Comment(Command):
     """Manage comments of a pull"""
     def __call__(self):
         pass
 
 
-class CommentList(tpv.cli.Command):
+class CommentList(Command):
     """List comments of a pull """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -209,7 +210,7 @@ updated: {updated_at}
             self.print_comment(comment)
 
 
-class CommentAdd(tpv.cli.Command):
+class CommentAdd(Command):
     """Add a comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -226,7 +227,7 @@ class CommentAdd(tpv.cli.Command):
         pull["issue"]["comments"].add(body=text)
 
 
-class CommentUpdate(tpv.cli.Command):
+class CommentUpdate(Command):
     """Edits a comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -243,7 +244,7 @@ class CommentUpdate(tpv.cli.Command):
         repo["comments"][commentid].update(dict(body=text))
 
 
-class CommentRemove(tpv.cli.Command):
+class CommentRemove(Command):
     """Removes a comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",

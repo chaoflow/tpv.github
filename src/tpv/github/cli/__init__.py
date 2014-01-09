@@ -4,10 +4,24 @@
 import tpv.cli
 import tpv.pkg_resources
 
+from .switches import ConfigSwitchAttr
 from ..github_base import config
 
 
-class Github(tpv.cli.Command):
+class Command(tpv.cli.Command):
+    def __init__(self, *args, **kwargs):
+        super(Command, self).__init__(*args, **kwargs)
+
+        for func, swinfo in self._switches_by_func.iteritems():
+            if isinstance(func, ConfigSwitchAttr) and \
+               config.has_option(self.PROGNAME, swinfo.names[0]):
+                value = config.get(self.PROGNAME, swinfo.names[0])
+                swinfo.help += ("; " if swinfo.help else "") + \
+                               "configured to '{}'".format(value)
+
+
+
+class Github(Command):
     """Prototypical unified github command line.
 
     Come join the discussion!
@@ -22,7 +36,7 @@ class Github(tpv.cli.Command):
         self.help()
 
 
-class Help(tpv.cli.Command):
+class Help(Command):
     """Show help """
 
     def __call__(self):

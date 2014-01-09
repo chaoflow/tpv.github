@@ -1,7 +1,8 @@
 
 import tpv.cli
-from aspects import stdout_to_pager
+#from aspects import stdout_to_pager
 
+from . import Command
 from ..github_base import set_on_new_dict, extract_repo_from_issue_url
 from .types import repo_type, issue_type, user_type
 from .switches import add_argument_switches, ConfigSwitchAttr
@@ -23,7 +24,7 @@ from .completion import \
     dict(name="since", help=u"Only issues updated at or after this time are returned (YYYY-MM-DDTHH:MM:SSZ).")
 ])
 #@stdout_to_pager
-class List(tpv.cli.Command):
+class List(Command):
     """List issues matching filter criteria
 
 The use of the stdout_to_pager aspect confuses plumbum into thinking
@@ -122,7 +123,7 @@ Author: {user[login]}
             self.print_issue(issue)
 
 
-class Show(tpv.cli.Command):
+class Show(Command):
     """Show a list of issues by their issuenumber """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -187,7 +188,7 @@ Updated: {updated_at}
     dict(name="labels", flagname="--label", list=True,
          help=u"Labels to associate with this issue")
 ])
-class Add(tpv.cli.Command):
+class Add(Command):
     """Add a new issue """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -214,7 +215,7 @@ class Add(tpv.cli.Command):
     dict(name="labels", flagname="--label", list=True,
          help=u"Labels to associate with this issue")
 ])
-class Update(tpv.cli.Command):
+class Update(Command):
     """Update an issue """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -232,13 +233,13 @@ class Issue(List):
     mine = "all"
 
 
-class Comment(tpv.cli.Command):
+class Comment(Command):
     """Manage comments of an issue"""
     def __call__(self):
         pass
 
 
-class CommentList(tpv.cli.Command):
+class CommentList(Command):
     """List comments of an issue """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -263,7 +264,7 @@ updated: {updated_at}
             self.print_comment(comment)
 
 
-class CommentAdd(tpv.cli.Command):
+class CommentAdd(Command):
     """Add a comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -280,7 +281,7 @@ class CommentAdd(tpv.cli.Command):
         issue["comments"].add(body=text)
 
 
-class CommentUpdate(tpv.cli.Command):
+class CommentUpdate(Command):
     """Edits a comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
@@ -297,7 +298,7 @@ class CommentUpdate(tpv.cli.Command):
         repo["comments"][commentid].update(dict(body=text))
 
 
-class CommentRemove(tpv.cli.Command):
+class CommentRemove(Command):
     """Removes a comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",

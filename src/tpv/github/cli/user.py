@@ -1,12 +1,12 @@
 import sys
-import tpv.cli
 
+from . import Command
 from ..github import authenticated_user
 from .types import user_type
 from .switches import add_argument_switches
 
 
-class Show(tpv.cli.Command):
+class Show(Command):
     """Show users
     """
 
@@ -57,7 +57,7 @@ class Show(tpv.cli.Command):
     dict(name="bio",
          help="The new short biography of the user.")
 ])
-class Update(tpv.cli.Command):
+class Update(Command):
     """Update user info of the authenticated user
     """
 
