@@ -221,6 +221,7 @@ class GhTeamMembers(GhCollection):
 
     add_url_template = "/teams/{teamid}/members/{login}"
     add_method = "PUT"
+    add_required_arguments = ["login"]
 
     delete_url_template = "/teams/{teamid}/members/{login}"
 
@@ -262,6 +263,7 @@ class GhOrgTeams(GhCollection):
     child_class = GhTeam
 
     add_url_template = "/orgs/{org}/teams"
+    add_required_arguments = ["name"]
     delete_url_template = "/teams/{teamid}"
 
 

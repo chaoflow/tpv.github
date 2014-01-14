@@ -295,6 +295,9 @@ class GhCollection(GhBase):
                 return self.child_class(parent=self, data=data, **parameters)
 
         elif self.add_method == "PUT":
+            if self.list_key not in arguments:
+                raise ValueError("The required argument {} was not provided"
+                                 .format(self.list_key))
             tmpl_vars = set_on_new_dict(self._parameters,
                                         self.child_parameter,
                                         arguments[self.list_key])
