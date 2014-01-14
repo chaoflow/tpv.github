@@ -32,7 +32,7 @@ completion of the options.
     def print_pull(self, pull):
 
         tmpl = u'''
-#{number} {cyanfont}{title}{normalfont}
+#{number} {=cyan}{title}{=normal}
 State: {state}
 Head: {base[label]}
 Base: {head[label]}
@@ -40,8 +40,7 @@ Updated at: {updated_at}
 {body}
         '''.strip()+"\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **pull).encode('utf-8')
+        print self.format(tmpl, **pull)
 
     def __call__(self):
         repo = repo_type(self.repo)
@@ -69,33 +68,29 @@ class Show(Command):
 Path: {path}
 {diff_hunk}
         '''.strip() + "\n"
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **hunk[0]).encode('utf-8')
+        print self.format(tmpl, **hunk[0])
 
         for comment in hunk:
             commenttmpl = u'''
-#{id} {cyanfont}{user[login]}{normalfont}
+#{id} {=cyan}{user[login]}{=normal}
 updated: {updated_at}
 {body}
             '''.strip()+"\n"
 
-            print commenttmpl.format(cyanfont="\033[0;36m",
-                                     normalfont="\033[0m",
-                                     **comment).encode('utf-8')
+            print self.format(tmpl, **comment)
 
     def print_comment(self, comment):
         tmpl = u'''
-#{id} {cyanfont}{user[login]}{normalfont}
+#{id} {=cyan}{user[login]}{=normal}
 updated: {updated_at}
 {body}
         '''.strip()+"\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **comment).encode('utf-8')
+        print self.format(tmpl, **comment)
 
     def print_pull(self, pull):
         tmpl = u'''
-#{number} {cyanfont}{title}{normalfont}
+#{number} {=cyan}{title}{=normal}
 State: {state}
 Head: {base[label]}
 Base: {head[label]}
@@ -103,8 +98,7 @@ Updated at: {updated_at}
 {body}
         '''.strip()+"\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **pull).encode('utf-8')
+        print self.format(tmpl, **pull)
 
         if self.with_comments:
             hunks = dict()
@@ -112,15 +106,11 @@ Updated at: {updated_at}
                 hunks.setdefault(comment["original_position"],
                                  []).append(comment)
 
-            print "{cyanfont}Review Comments:{normalfont}" \
-                .format(cyanfont="\033[0;36m",
-                        normalfont="\033[0m")
+            print self.format("{=cyan}Review Comments:{=normal}")
             for hunk in hunks.itervalues():
                 self.print_reviewcomments(hunk)
 
-            print "{cyanfont}Comments:{normalfont}\n" \
-                .format(cyanfont="\033[0;36m",
-                        normalfont="\033[0m")
+            print self.format("{=cyan}Comments:{=normal}\n")
 
             for comment in pull["issue"]["comments"].itervalues():
                 self.print_comment(comment)
@@ -194,13 +184,12 @@ class CommentList(Command):
 
     def print_comment(self, comment):
         tmpl = u'''
-#{id} {cyanfont}{user[login]}{normalfont}
+#{id} {=cyan}{user[login]}{=normal}
 updated: {updated_at}
 {body}
         '''.strip()+"\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **comment).encode('utf-8')
+        print self.format(tmpl, **comment)
 
     @tpv.cli.completion(pullno=RepoChildIdDynamicCompletion("pulls"))
     def __call__(self, pullno):

@@ -11,7 +11,7 @@ class Show(Command):
     """
 
     def print_user(self, user):
-        tmpl = u"{cyanfont}{login}"
+        tmpl = u"{=cyan}{login}"
         if "name" in user or "email" in user:
             tmpl += " - " + (u"{name} "
                              if "name" in user and user["name"] is not None
@@ -19,7 +19,7 @@ class Show(Command):
                     + (u"<{email}>"
                        if "email" in user and user["email"] is not None
                        else "")
-        tmpl += u"{normalfont}\n"
+        tmpl += u"{=normal}\n"
 
         if user["type"] != "User":
             tmpl += u"Type: {type}\n"
@@ -28,7 +28,7 @@ class Show(Command):
         if "location" in user and user["location"] is not None:
             tmpl += u"Location: {location}\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m", **user)
+        print self.format(tmpl, **user)
 
     def __call__(self, *users):
         if len(users) < 1:

@@ -69,12 +69,11 @@ class MemList(Command):
 
     def print_member(self, member):
         tmpl = u"""
-{cyanfont}{login}{normalfont}
+{=cyan}{login}{=normal}
 id: {id}
 site_admin: {site_admin}
         """.strip()+"\n"
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **member)
+        print self.format(tmpl, **member)
 
     @tpv.cli.completion(org_name=OwnOrgsDynamicCompletion())
     def __call__(self, org_name):
@@ -164,13 +163,12 @@ class TeamShow(Command):
 
     def print_team(self, team):
         tmpl = u"""
-{cyanfont}{name}{normalfont} ({id})
+{=cyan}{name}{=normal} ({id})
 members count: {members_count}
 repos count: {repos_count}
 members: {members}
         """.strip()
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          members=", ".join(m["login"]
+        print self.format(members=", ".join(m["login"]
                                             for m in team["members"].itervalues()),
                           **team)
 
@@ -226,10 +224,10 @@ class TeamRepoList(Command):
 
     def print_repo(self, repo):
         tmpl = """
-{cyanfont}{name}{normalfont}
+{=cyan}{name}{=normal}
 {description}
         """.strip() + "\n"
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m", **repo)
+        print self.format(tmpl, **repo)
 
     @tpv.cli.completion(org=OwnOrgsDynamicCompletion(),
                         team=TeamDynamicCompletion())

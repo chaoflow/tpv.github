@@ -63,15 +63,14 @@ completion of the options.
             (user, repo) = extract_repo_from_issue_url(issue["url"],
                                                        issue["number"])
             tmpl += " :{}/{}".format(user, repo)
-        tmpl += " {cyanfont}{title}{normalfont}"
+        tmpl += " {=cyan}{title}{=normal}"
         if issue["assignee"] is not None:
             tmpl += " @{assignee[login]}"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **issue).encode('utf-8')
+        print self.format(tmpl, **issue)
 
     def print_issue_long(self, issue):
-        tmpl = u"#{number} {cyanfont}{title}{normalfont}\n"
+        tmpl = u"#{number} {=cyan}{title}{=normal}\n"
         if self.mine is not None and self.repo is None:
             (user, repo) = extract_repo_from_issue_url(issue["url"],
                                                        issue["number"])
@@ -84,8 +83,7 @@ Author: {user[login]}
         if issue["assignee"] is not None:
             tmpl += "Assignee: {assignee[login]}\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **issue).encode('utf-8')
+        print self.format(tmpl, **issue)
 
     def __call__(self):
         if "state" not in self.arguments:
@@ -136,17 +134,16 @@ class Show(Command):
 
     def print_comment(self, comment):
         tmpl = u'''
-#{id} {cyanfont}{user[login]}{normalfont}
+#{id} {=cyan}{user[login]}{=normal}
 updated: {updated_at}
 {body}
         '''.strip()+"\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **comment).encode('utf-8')
+        print self.format(tmpl, **comment)
 
     def print_issue(self, issue):
         tmpl = u'''
-#{number} {cyanfont}{title}{normalfont}
+#{number} {=cyan}{title}{=normal}
 State: {state}
 Author: {user[login]}
 Updated: {updated_at}
@@ -156,13 +153,10 @@ Updated: {updated_at}
         if len(issue["body"]) > 0:
             tmpl += u"\n{body}\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **issue).encode('utf-8')
+        print self.format(tmpl, **issue)
 
         if self.with_comments:
-            print "{cyanfont}Comments:{normalfont}" \
-                .format(cyanfont="\033[0;36m",
-                        normalfont="\033[0m")
+            print self.format("{=cyan}Comments:{=normal}")
 
             for comment in issue["comments"].itervalues():
                 self.print_comment(comment)
@@ -248,13 +242,12 @@ class CommentList(Command):
 
     def print_comment(self, comment):
         tmpl = u'''
-#{id} {cyanfont}{user[login]}{normalfont}
+#{id} {=cyan}{user[login]}{=normal}
 updated: {updated_at}
 {body}
         '''.strip()+"\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **comment).encode('utf-8')
+        print self.format(tmpl, **comment)
 
     @tpv.cli.completion(issueno=RepoChildIdDynamicCompletion("issues"))
     def __call__(self, issueno):

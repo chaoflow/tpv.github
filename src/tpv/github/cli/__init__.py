@@ -1,6 +1,9 @@
 """gh - prototypical unified cli for github
 """
 
+import string
+import sys
+
 import tpv.cli
 import tpv.pkg_resources
 
@@ -8,7 +11,37 @@ from .switches import ConfigSwitchAttr
 from ..github_base import config
 
 
+class ColorFormatter(string.Formatter):
+    def __init__(self, use_colors=True):
+        self.use_colors = use_colors and sys.stdout.isatty()
+
+    def get_field(self, field_name, args, kwargs):
+        if field_name.startswith("="):
+            return (self.colors[field_name[1:]]
+                    if self.use_colors
+                    else "", field_name)
+        else:
+            return super(ColorFormatter, self).get_field(field_name,
+                                                         args, kwargs)
+
+ColorFormatter.colors = dict(
+    normal="\033[0m",
+    black="\033[0;30m",
+    blue="\033[0;34m",
+    green="\033[0;32m",
+    cyan="\033[0;36m",
+    red="\033[0;31m",
+    purple="\033[0;35m",
+    brown="\033[0;33m",
+    yellow="\033[1;33m",
+    white="\033[1;37m"
+)
+
+
 class Command(tpv.cli.Command):
+    use_colors = tpv.cli.Flag("--no-colors", help="Disable colors",
+                              default=True)
+
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
@@ -19,6 +52,13 @@ class Command(tpv.cli.Command):
                 swinfo.help += ("; " if swinfo.help else "") + \
                                "configured to '{}'".format(value)
 
+        self.colors = None
+
+    def format(self, tmpl, **repls):
+        if self.colors is None:
+            self.colors = ColorFormatter(self.use_colors)
+
+        return self.colors.format(tmpl, **repls).encode("utf-8")
 
 
 class Github(Command):

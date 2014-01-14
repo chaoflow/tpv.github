@@ -14,7 +14,7 @@ class List(Command):
     """
     def print_repo(self, repo):
         tmpl = u'''
-{cyanfont}{name}{normalfont}
+{=cyan}{name}{=normal}
 Description: {description}
         '''.strip()+"\n"
         if "master_branch" in repo and \
@@ -25,8 +25,8 @@ Description: {description}
             tmpl += u"homepage: {homepage}\n"
         tmpl += u"updated: {updated_at}\n"
 
-        print tmpl.format(cyanfont="\033[0;36m", normalfont="\033[0m",
-                          **repo).encode('utf-8')
+
+        print self.format(tmpl, **repo)
 
     def __call__(self, user=None):
         '''List Repositories
