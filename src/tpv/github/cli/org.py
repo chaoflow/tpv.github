@@ -168,7 +168,8 @@ members count: {members_count}
 repos count: {repos_count}
 members: {members}
         """.strip()
-        print self.format(members=", ".join(m["login"]
+        print self.format(tmpl,
+                          members=", ".join(m["login"]
                                             for m in team["members"].itervalues()),
                           **team)
 
