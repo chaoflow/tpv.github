@@ -168,3 +168,5 @@ the current default format
 
 plumbum automatically uppercases the argname. <USER>/<REPO> looks VERY
 heavy, so we decided to just hide this information alltogether.
+* Bugs
+** TODO GhTeamMembers doesn't provide a __getitem__ or __contains__ method
