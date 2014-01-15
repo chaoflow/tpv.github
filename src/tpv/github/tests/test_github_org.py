@@ -175,23 +175,6 @@ class TestGithubOrgTeamMembers(TestCase):
             self.assertTrue(isinstance(member2[1], GhMember))
             self.assertEqual(member2[1]["login"], "ninocat")
 
-    # comment for now, bug
-    # def test_team_member_getitem(self):
-    #     with self.request_override([
-    #             dict(urlpath="/orgs/github",
-    #                  response_body='{ "login": "github" }'),
-    #             dict(urlpath="/teams/1",
-    #                  response_body='{ "id": 1 }'),
-    #             dict(urlpath="/teams/1/members/octocat",
-    #                  response_status="204 No Content",
-    #                  response_body='null'),
-    #             dict(urlpath="/teams/1/members/someoneelse",
-    #                  response_status="404 Not Found",
-    #                  response_body='null')]):
-    #         members = Github()["orgs"]["github"]["teams"][1]["members"]
-    #         self.assertTrue("octocat" in members)
-    #         self.assertFalse("someoneelse" in members)
-
     def test_team_member_add(self):
         with self.request_override([
                 dict(urlpath="/orgs/github",
@@ -253,23 +236,6 @@ class TestGithubOrgTeamRepos(TestCase):
                                     repos.iteritems()))
             self.assertTrue(isinstance(repo2[1], GhResource))
             self.assertEqual(repo2[1]["name"], "Hello-Earth")
-
-    # comment for now, bug
-    # def test_team_repo_getitem(self):
-    #     with self.request_override([
-    #             dict(urlpath="/orgs/github",
-    #                  response_body='{ "login": "github" }'),
-    #             dict(urlpath="/teams/1",
-    #                  response_body='{ "id": 1 }'),
-    #             dict(urlpath="/teams/1/repos/octocat",
-    #                  response_status="204 No Content",
-    #                  response_body='null'),
-    #             dict(urlpath="/teams/1/repos/someoneelse",
-    #                  response_status="404 Not Found",
-    #                  response_body='null')]):
-    #         repos = Github()["orgs"]["github"]["teams"][1]["repos"]
-    #         self.assertTrue("octocat" in repos)
-    #         self.assertFalse("someoneelse" in repos)
 
     def test_team_repo_add(self):
         with self.request_override([
@@ -337,23 +303,6 @@ class TestGithubOrgMembers(TestCase):
                                     members.iteritems()))
             self.assertTrue(isinstance(repo2[1], GhResource))
             self.assertEqual(repo2[1]["login"], "ninocat")
-
-    # comment for now, bug
-    # def test_team_repo_getitem(self):
-    #     with self.request_override([
-    #             dict(urlpath="/orgs/github",
-    #                  response_body='{ "login": "github" }'),
-    #             dict(urlpath="/teams/1",
-    #                  response_body='{ "id": 1 }'),
-    #             dict(urlpath="/teams/1/repos/octocat",
-    #                  response_status="204 No Content",
-    #                  response_body='null'),
-    #             dict(urlpath="/teams/1/repos/someoneelse",
-    #                  response_status="404 Not Found",
-    #                  response_body='null')]):
-    #         repos = Github()["orgs"]["github"]["teams"][1]["repos"]
-    #         self.assertTrue("octocat" in repos)
-    #         self.assertFalse("someoneelse" in repos)
 
     def test_org_members_delitem(self):
         with self.request_override([
