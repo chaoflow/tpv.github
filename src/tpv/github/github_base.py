@@ -4,7 +4,10 @@ import os
 import sys
 from ConfigParser import ConfigParser
 import re
-import itertools
+from itertools import chain
+
+from metachao import aspect
+from tpv.ordereddict import OrderedDict
 
 URL_BASE = 'https://api.github.com'
 
@@ -20,26 +23,106 @@ URL_BASE = 'https://api.github.com'
 # token" on https://github.com/settings/applications.
 
 
-class RecursiveConfigParser(ConfigParser):
-    def read(self, basename):
-        files = []
-        home = os.path.expanduser("~")
-        path = os.getcwd()
+class RelativeDictionaryAccess(aspect.Aspect):
+    @aspect.plumb
+    def __getitem__(_next, self, key):
+        try:
+            for k in key.split("."):
+                cur = _next(k)
+                _next = cur.__getitem__
+        except AttributeError:
+            pass
 
-        while path and path != home:
-            files.append(os.path.join(path, basename))
-            path = path[:path.rfind(os.path.sep)]
+        return cur
 
-        files.append(os.path.join(home, basename))
+    @aspect.plumb
+    def __contains__(_next, self, key):
+        if "." not in key:
+            return _next(key)
 
-        return ConfigParser.read(self, reversed(files))
+        nodes = key.split(".")
+        curr = self
+        try:
+            for k in nodes[:-1]:
+                curr = self[k]
+        except KeyError:
+            return False
 
-config = RecursiveConfigParser()
-config.read(".ghconfig")
+        return nodes[-1] in curr
+
+
+class DictConfigParser(object):
+    def __init__(self, basename):
+        def get_files(basename):
+            home = os.path.expanduser("~")
+            path = os.getcwd()
+
+            while path and path != home:
+                yield os.path.join(path, basename)
+                path = path[:path.rfind(os.path.sep)]
+
+            yield os.path.join(home, basename)
+
+        def parse_config(f):
+            config = ConfigParser()
+            config.read(f)
+            return RelativeDictionaryAccess(
+                OrderedDict((section,
+                             dict((option, value)
+                                  for option, value in config.items(section)))
+                            for section in config.sections())
+            )
+
+        self.config_dict = OrderedDict((f, parse_config(f))
+                                       for f in get_files(basename))
+
+    def by_files(self):
+        return self.config_dict
+
+    def __getitem__(self, key):
+        for config in self.config_dict.itervalues():
+            if key in config:
+                return config[key]
+        raise KeyError(key)
+
+    def __contains__(self, key):
+        for config in self.config_dict.itervalues():
+            if key in config:
+                return True
+        return False
+
+    def _flat_dict(self):
+        return RelativeDictionaryAccess(OrderedDict(
+            chain.from_iterable(
+                x.iteritems()
+                for x in reversed(self.config_dict.values())
+            )))
+
+    def __iter__(self):
+        return iter(self._flat_dict())
+
+    iterkeys = __iter__
+
+    def itervalues(self):
+        return self._flat_dict().itervalues()
+
+    def iteritems(self):
+        return self._flat_dict().iteritems()
+
+    def keys(self):
+        return list(self)
+
+    def values(self):
+        return list(self.itervalues())
+
+    def items(self):
+        return list(self.iteritems())
+
+config = DictConfigParser(".ghconfig")
 
 
 def authenticated_user():
-    return config.get("github", "user")
+    return config["github.user"]
 
 
 def extract_repo_from_issue_url(url, issueno):
@@ -49,7 +132,7 @@ def extract_repo_from_issue_url(url, issueno):
 
 
 def merge_dicts(*dicts):
-    return dict(itertools.chain(*(d.iteritems() for d in dicts)))
+    return dict(chain(*(d.iteritems() for d in dicts)))
 
 
 def set_on_new_dict(basedict, key, value):
@@ -66,15 +149,14 @@ def github_request(method, urlpath, data=None, params=None):
     - `urlpath`: the path part of the request url, i.e. /users/coroa
     """
     req = request(method, URL_BASE + urlpath,
-                  auth=(config.get("github", "user"),
-                        config.get("github", "token")),
+                  auth=(config["github.user"],
+                        config["github.token"]),
                   data=None
                   if data is None
                   else json.dumps(data),
                   params=params)
 
-    if config.has_option("github", "debug") and \
-       config.getint("github", "debug") >= 2:
+    if "github.debug" in config and int(config["github.debug"]) >= 2:
         sys.stderr.write(('''
 >>> Request
 {method} {url}
@@ -140,8 +222,7 @@ class GhBase(dict):
         )
 
     def _debug(self, func, *args):
-        if config.has_option("github", "debug") and \
-           config.getint("github", "debug") >= 1:
+        if "github.debug" in config and int(config["github.debug"]) >= 1:
             sys.stderr.write("{}.{}({})\n".format(self, func, ", ".join(args)))
 
 

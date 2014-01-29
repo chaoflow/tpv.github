@@ -8,7 +8,9 @@ import tpv.cli
 import tpv.pkg_resources
 
 from .switches import ConfigSwitchAttr
-from ..github_base import config
+
+# load_entry_points below overwrites the name config by the config module.
+from ..github_base import config as config_object
 
 
 class ColorFormatter(string.Formatter):
@@ -46,11 +48,13 @@ class Command(tpv.cli.Command):
         super(Command, self).__init__(*args, **kwargs)
 
         for func, swinfo in self._switches_by_func.iteritems():
-            if isinstance(func, ConfigSwitchAttr) and \
-               config.has_option(self.PROGNAME, swinfo.names[0]):
-                value = config.get(self.PROGNAME, swinfo.names[0])
-                swinfo.help += ("; " if swinfo.help else "") + \
-                               "configured to '{}'".format(value)
+            if isinstance(func, ConfigSwitchAttr):
+                try:
+                    value = config_object[self.PROGNAME][swinfo.names[0]]
+                    swinfo.help += (("; " if swinfo.help else "") +
+                                    "configured to '{}'".format(value))
+                except KeyError:
+                    pass
 
         self.colors = None
 
@@ -70,7 +74,8 @@ class Github(Command):
 
     @tpv.cli.switch(["-d", "--debug"], argtype=None, list=True)
     def debug(self, value):
-        config.set("github", "debug", str(len(value)))
+        next(config_object.by_files().itervalues()) \
+            .setdefault("github", dict())["debug"] = str(len(value))
 
     def __call__(self):
         self.help()
