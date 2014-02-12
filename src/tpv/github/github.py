@@ -312,7 +312,7 @@ class GhUserIssues(GhRepoIssues):
         raise NotImplementedError("Can't add to collection.")
 
     def _instantiate_child_from_url(self, issueno, data):
-        (user, repo) = extract_repo_from_issue_url(data["url"], issueno)
+        (user, repo) = extract_repo_from_issue_url(data["url"])
         return self.child_class(self,
                                 data=data,
                                 **{'user': user,

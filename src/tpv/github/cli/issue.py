@@ -60,8 +60,7 @@ completion of the options.
     def print_issue_short(self, issue):
         tmpl = u"#{number}"
         if self.mine is not None and self.repo is None:
-            (user, repo) = extract_repo_from_issue_url(issue["url"],
-                                                       issue["number"])
+            (user, repo) = extract_repo_from_issue_url(issue["url"])
             tmpl += " :{}/{}".format(user, repo)
         tmpl += " {=cyan}{title}{=normal}"
         if issue["assignee"] is not None:
@@ -72,8 +71,7 @@ completion of the options.
     def print_issue_long(self, issue):
         tmpl = u"#{number} {=cyan}{title}{=normal}\n"
         if self.mine is not None and self.repo is None:
-            (user, repo) = extract_repo_from_issue_url(issue["url"],
-                                                       issue["number"])
+            (user, repo) = extract_repo_from_issue_url(issue["url"])
             tmpl += "Repo: {}/{}\n".format(user, repo)
         tmpl += '''
 State: {state}

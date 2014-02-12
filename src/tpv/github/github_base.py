@@ -144,9 +144,8 @@ def authenticated_user():
     return config["github.user"]
 
 
-def extract_repo_from_issue_url(url, issueno):
-    m = re.match(URL_BASE + "/repos/(.+)/(.+)/issues/{}"
-                 .format(issueno), url)
+def extract_repo_from_issue_url(url):
+    m = re.match(URL_BASE + "/repos/(.+)/(.+)/issues/", url)
     return (m.group(1), m.group(2))
 
 
