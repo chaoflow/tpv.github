@@ -1,9 +1,8 @@
 from metachao import classtree
 import itertools
-import re
 
 from .github_base import \
-    URL_BASE, extract_repo_from_issue_url, \
+    extract_repo_from_issue_url, \
     GhResource, GhCollection, \
     github_request, github_request_paginated, \
     set_on_new_dict, authenticated_user
