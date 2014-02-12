@@ -12,6 +12,16 @@ from tpv.ordereddict import OrderedDict
 URL_BASE = 'https://api.github.com'
 
 
+def merge_dicts(*dicts):
+    return dict(chain(*(d.iteritems() for d in dicts)))
+
+
+def set_on_new_dict(basedict, key, value):
+    ret = basedict.copy()
+    ret[key] = value
+    return ret
+
+
 # Read in some authentication data from ~/.ghconfig.
 # It should contain a section like
 #
@@ -80,23 +90,32 @@ class DictConfigParser(object):
         return self.config_dict
 
     def __getitem__(self, key):
-        for config in self.config_dict.itervalues():
-            if key in config:
-                return config[key]
-        raise KeyError(key)
+        if "." in key:
+            for config in self.config_dict.itervalues():
+                if key in config:
+                    return config[key]
+            raise KeyError(key)
+        else:
+            return self._flat_dict()[key]
 
     def __contains__(self, key):
-        for config in self.config_dict.itervalues():
-            if key in config:
-                return True
-        return False
+        if "." in key:
+            for config in self.config_dict.itervalues():
+                if key in config:
+                    return True
+            return False
+        else:
+            return key in self._flat_dict()
 
     def _flat_dict(self):
-        return RelativeDictionaryAccess(OrderedDict(
-            chain.from_iterable(
-                x.iteritems()
-                for x in reversed(self.config_dict.values())
-            )))
+        ret = OrderedDict()
+        for sec_name, sec_dict in \
+            chain.from_iterable(x.iteritems()
+                                for x in self.config_dict.values()):
+            ret[sec_name] = (merge_dicts(sec_dict, ret[sec_name])
+                             if sec_name in ret
+                             else sec_dict)
+        return RelativeDictionaryAccess(ret)
 
     def __iter__(self):
         return iter(self._flat_dict())
@@ -129,16 +148,6 @@ def extract_repo_from_issue_url(url, issueno):
     m = re.match(URL_BASE + "/repos/(.+)/(.+)/issues/{}"
                  .format(issueno), url)
     return (m.group(1), m.group(2))
-
-
-def merge_dicts(*dicts):
-    return dict(chain(*(d.iteritems() for d in dicts)))
-
-
-def set_on_new_dict(basedict, key, value):
-    ret = basedict.copy()
-    ret[key] = value
-    return ret
 
 
 def github_request(method, urlpath, data=None, params=None):
