@@ -19,12 +19,13 @@ class GhRepoComments(GhCollection):
     """The comments of some repository
     """
 
-    list_url_template = "/repos/{user}/{repo}/issues/comments"
-    list_key = "id"
-
-    get_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
     child_class = GhComment
     child_parameter = "commentid"
+
+    get_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
+
+    list_url_template = "/repos/{user}/{repo}/issues/comments"
+    list_key = "id"
 
     delete_url_template = get_url_template
 
@@ -33,12 +34,13 @@ class GhIssueComments(GhCollection):
     """The comments of some issue
     """
 
-    list_url_template = "/repos/{user}/{repo}/issues/{issueno}/comments"
-    list_key = "id"
-
-    get_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
     child_class = GhComment
     child_parameter = "commentid"
+
+    get_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
+
+    list_url_template = "/repos/{user}/{repo}/issues/{issueno}/comments"
+    list_key = "id"
 
     add_url_template = list_url_template
     add_required_arguments = ["body"]
@@ -60,15 +62,18 @@ class GhRepoIssues(GhCollection):
     """The issues of some repository
     """
 
-    list_url_template = "/repos/{user}/{repo}/issues"
-    list_key = "number"
-
-    get_url_template = "/repos/{user}/{repo}/issues/{issueno}"
     child_class = GhIssue
     child_parameter = "issueno"
 
+    get_url_template = "/repos/{user}/{repo}/issues/{issueno}"
+
+    list_url_template = "/repos/{user}/{repo}/issues"
+    list_key = "number"
+
     add_url_template = "/repos/{user}/{repo}/issues"
 
+    # as github provides only either open or closed issues, we chain
+    # two separate calls to get all of them
     def _get_resources(self, **arguments):
         urlpath = self.list_url_template.format(**self._parameters)
         if "state" in arguments:
@@ -94,12 +99,13 @@ class GhPullComments(GhCollection):
     """The comments of some pull request
     """
 
-    list_url_template = "/repos/{user}/{repo}/pulls/{issueno}/comments"
-    list_key = "id"
-
-    get_url_template = "/repos/{user}/{repo}/pulls/comments/{commentid}"
     child_class = GhPullComment
     child_parameter = "commentid"
+
+    get_url_template = "/repos/{user}/{repo}/pulls/comments/{commentid}"
+
+    list_url_template = "/repos/{user}/{repo}/pulls/{issueno}/comments"
+    list_key = "id"
 
     add_url_template = list_url_template
     add_required_arguments = ["body"]
@@ -111,12 +117,13 @@ class GhRepoPullComments(GhCollection):
     """The comments of some repository
     """
 
-    list_url_template = "/repos/{user}/{repo}/pulls/comments"
-    list_key = "id"
-
-    get_url_template = "/repos/{user}/{repo}/pulls/comments/{commentid}"
     child_class = GhPullComment
     child_parameter = "commentid"
+
+    get_url_template = "/repos/{user}/{repo}/pulls/comments/{commentid}"
+
+    list_url_template = "/repos/{user}/{repo}/pulls/comments"
+    list_key = "id"
 
     delete_url_template = get_url_template
 
@@ -136,15 +143,18 @@ class GhRepoPulls(GhCollection):
     """The issues of some repository
     """
 
-    list_url_template = "/repos/{user}/{repo}/pulls"
-    list_key = "number"
-
-    get_url_template = "/repos/{user}/{repo}/pulls/{issueno}"
     child_class = GhPull
     child_parameter = "issueno"
 
+    get_url_template = "/repos/{user}/{repo}/pulls/{issueno}"
+
+    list_url_template = "/repos/{user}/{repo}/pulls"
+    list_key = "number"
+
     add_url_template = "/repos/{user}/{repo}/pulls"
 
+    # as github provides only either open or closed pull requests, we
+    # chain two separate calls to get all of them
     def _get_resources(self, **arguments):
         urlpath = self.list_url_template.format(**self._parameters)
         if "state" in arguments:
@@ -177,13 +187,16 @@ class GhUserRepos(GhCollection):
     """Github container for the repositories of user `user`
     """
 
-    list_url_template = "/users/{user}/repos"
-    list_key = "name"
-
-    get_url_template = "/repos/{user}/{repo}"
     child_class = GhRepo
     child_parameter = "repo"
 
+    get_url_template = "/repos/{user}/{repo}"
+
+    list_url_template = "/users/{user}/repos"
+    list_key = "name"
+
+    # Repositories can only be created for the authenticated user or
+    # an organization, which the user is part of (checked by github).
     @property
     def add_url_template(self):
         grandparent = self._parent._parent
@@ -201,9 +214,10 @@ class GhRepos(GhCollection):
     """Github repository container
     """
 
-    get_url_template = "/users/{user}"
     child_class = GhUserRepos
     child_parameter = "user"
+
+    get_url_template = "/users/{user}"
 
 
 class GhMember(GhResource):
@@ -213,11 +227,11 @@ class GhMember(GhResource):
 class GhTeamMembers(GhCollection):
     """Members of a team"""
 
-    list_url_template = "/teams/{teamid}/members"
-    list_key = "login"
-
     child_class = GhMember
     child_parameter = "login"
+
+    list_url_template = "/teams/{teamid}/members"
+    list_key = "login"
 
     add_url_template = "/teams/{teamid}/members/{login}"
     add_method = "PUT"
@@ -229,11 +243,11 @@ class GhTeamMembers(GhCollection):
 class GhTeamRepos(GhCollection):
     """Repos in an organisation's team"""
 
-    list_url_template = "/teams/{teamid}/repos"
-    list_key = "name"
-
     child_class = GhResource
     child_parameter = "repo_name"
+
+    list_url_template = "/teams/{teamid}/repos"
+    list_key = "name"
 
     add_url_template = "/teams/{teamid}/repos/{repo_name}"
     add_method = "PUT"
@@ -255,12 +269,13 @@ class GhOrgTeams(GhCollection):
     """Teams in an organisation
     """
 
-    list_url_template = "/orgs/{org}/teams"
-    list_key = "id"
+    child_class = GhTeam
+    child_parameter = "teamid"
 
     get_url_template = "/teams/{teamid}"
-    child_parameter = "teamid"
-    child_class = GhTeam
+
+    list_url_template = "/orgs/{org}/teams"
+    list_key = "id"
 
     add_url_template = "/orgs/{org}/teams"
     add_required_arguments = ["name"]
@@ -270,11 +285,11 @@ class GhOrgTeams(GhCollection):
 class GhOrgMembers(GhCollection):
     """Members of an organisation"""
 
-    list_url_template = "/orgs/{org}/members"
-    list_key = "login"
-
     child_class = GhMember
     child_parameter = "login"
+
+    list_url_template = "/orgs/{org}/members"
+    list_key = "login"
 
     delete_url_template = "/orgs/{org}/members/{login}"
 
@@ -293,9 +308,10 @@ class GhOrgs(GhCollection):
     """Organisations representation
     """
 
-    get_url_template = "/orgs/{org}"
     child_class = GhOrg
     child_parameter = "org"
+
+    get_url_template = "/orgs/{org}"
 
 
 class GhUserIssues(GhRepoIssues):
@@ -303,15 +319,21 @@ class GhUserIssues(GhRepoIssues):
 
     list_url_template = "/user/issues"
 
+    # Getting a single resource can only be done from within a repository
     @property
     def get_url_template(self):
         raise NotImplementedError()
 
+    # Creating a new issue can only be done from within a repository
     @property
     def add_url_template(self):
         raise NotImplementedError("Can't add to collection.")
 
     def _instantiate_child_from_url(self, issueno, data):
+        """Instantiate an issue ressource by deducing the necessary owner and
+repo tuple from the url of the issue.
+        """
+
         (user, repo) = extract_repo_from_issue_url(data["url"])
         return self.child_class(self,
                                 data=data,
@@ -320,6 +342,9 @@ class GhUserIssues(GhRepoIssues):
                                    'issueno': issueno})
 
     def search(self, **arguments):
+        """Return a subset of issue resources, which can only be instantiated
+by using the url of the issue
+        """
         for data in self._get_resources(**arguments):
             issueno = data[self.list_key]
             yield (issueno, self._instantiate_child_from_url(issueno, data))
@@ -328,18 +353,22 @@ class GhUserIssues(GhRepoIssues):
 class GhUserOrgs(GhCollection):
     """The organisations of the authenticated user"""
 
-    list_url_template = "/user/orgs"
-    list_key = "login"
+    child_class = GhOrg
+    child_parameter = "org"
 
     get_url_template = "/orgs/{org}"
-    child_parameter = "org"
-    child_class = GhOrg
+
+    list_url_template = "/user/orgs"
+    list_key = "login"
 
 
 @classtree.instantiate
 class GhUser(GhResource, classtree.Base):
     """User representation
     """
+
+    # The url depends on whether the GhUser resource refers to the
+    # authenticated user or any other one
     @property
     def url_template(self):
         return "/user" \
@@ -354,9 +383,10 @@ GhUser["orgs"] = GhUserOrgs
 class GhUsers(GhCollection):
     """Users representation"""
 
-    get_url_template = "/users/{user}"
     child_class = GhUser
     child_parameter = "user"
+
+    get_url_template = "/users/{user}"
 
 
 @classtree.instantiate
@@ -369,9 +399,3 @@ class Github(classtree.Base):
 Github["repos"] = GhRepos
 Github["users"] = GhUsers
 Github["orgs"] = GhOrgs
-
-
-
-
-# GhRepo["issues"] = GhRepoIssues
-# GhRepo["pullrequests"] = GhRepoPullrequests

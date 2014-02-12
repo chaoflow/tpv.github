@@ -34,6 +34,11 @@ def set_on_new_dict(basedict, key, value):
 
 
 class RelativeDictionaryAccess(aspect.Aspect):
+    """Aspect to enhance __getitem__ and __contains__, so they accept
+point-delimited keys for multiple levels at once.
+
+i.e. a["k1.k2.k3"] returns a["k1"]["k2"]["k3"]
+    """
     @aspect.plumb
     def __getitem__(_next, self, key):
         try:
@@ -62,7 +67,49 @@ class RelativeDictionaryAccess(aspect.Aspect):
 
 
 class DictConfigParser(object):
+    """A config access object
+
+All config files with the same `basename` between the current
+directory and the home directory are parsed in order into a
+config_dict dictionary tree.
+
+config_dict = OrderedDict((file1,
+                           OrderedDict((section1,
+                                        { 'option1': 'value1',
+                                          'option2': 'value2' }),
+                                       (section2,
+                                        { ... }),
+                                       ...)),
+                          (file2,
+                           ...))
+
+__getitem__, __contains__ and iteration-methods access to this
+dictionary is provided across all files and returns the first matching
+option (so that the config is taken from the most specific config
+file).
+
+the full dictionary with the extra file level can be accessed with the
+by_files method.
+
+Multiple levels of the config can be accessed by one call to
+__getitem__ or __contains__ by using '.' as delimiter.
+config["github.user"] -> config["github"]["user"]
+
+Usage:
+
+config = DictConfigParser(".ghconfig")
+config["github.user"] -> returns user option from github section
+
+config.by_files()["/home/coroa/.ghconfig"]["github.user"]
+-> retrieves this user option from the config file in the home
+directory specifically
+    """
+
     def __init__(self, basename):
+        """Locate and read in all files with basename from current directory
+up to the home directory and build up the config dictionary `config_dict`
+        """
+
         def get_files(basename):
             home = os.path.expanduser("~")
             path = os.getcwd()
@@ -87,15 +134,21 @@ class DictConfigParser(object):
                                        for f in get_files(basename))
 
     def by_files(self):
+        """Returns the full config dictionary with its filename level """
         return self.config_dict
 
     def __getitem__(self, key):
+        """Return the first section or section.option match from the config
+files
+        """
+
         if "." in key:
             for config in self.config_dict.itervalues():
                 if key in config:
                     return config[key]
             raise KeyError(key)
         else:
+            # we have to merge all sections with `key`
             return self._flat_dict()[key]
 
     def __contains__(self, key):
@@ -105,9 +158,13 @@ class DictConfigParser(object):
                     return True
             return False
         else:
+            # we have to merge all sections with `key`
             return key in self._flat_dict()
 
     def _flat_dict(self):
+        """Return an OrderedDict without the extra file level, in which all
+sections of the same name are merged.
+        """
         ret = OrderedDict()
         for sec_name, sec_dict in \
             chain.from_iterable(x.iteritems()
@@ -137,6 +194,7 @@ class DictConfigParser(object):
     def items(self):
         return list(self.iteritems())
 
+# Read in config from all .ghconfig files
 config = DictConfigParser(".ghconfig")
 
 
@@ -145,6 +203,7 @@ def authenticated_user():
 
 
 def extract_repo_from_issue_url(url):
+    """Returns (<owner>, <repo_name>) from the `url` of an issue """
     m = re.match(URL_BASE + "/repos/(.+)/(.+)/issues/", url)
     return (m.group(1), m.group(2))
 
@@ -155,6 +214,10 @@ def github_request(method, urlpath, data=None, params=None):
     Arguments:
     - `method`: one of "HEAD", "GET", "POST", "PATCH", "DELETE"
     - `urlpath`: the path part of the request url, i.e. /users/coroa
+    - `data`: POST/PATCH supplied arguments (dictionary)
+    - `params`: GET parameters to be added to the url (dictionary)
+
+    Returns a Request object for the call to github.
     """
     req = request(method, URL_BASE + urlpath,
                   auth=(config["github.user"],
@@ -186,6 +249,9 @@ def github_request(method, urlpath, data=None, params=None):
 
 
 def github_request_paginated(method, urlpath, params=None):
+    """Generator, which yields all items of a multipage github request for
+lists of objects.
+    """
     while urlpath:
         req = github_request(method, urlpath, params=params)
         if '200 OK' not in req.headers['status']:
@@ -202,6 +268,9 @@ def github_request_paginated(method, urlpath, params=None):
 
 
 def github_request_length(urlpath):
+    """Return the number of items of a github request for lists of
+objects.
+    """
     req = github_request("GET", urlpath + "?per_page=1")
     m = re.search('<https[^>]*[?&]page=(\d+)[^>]*>; rel="last"',
                   req.headers["Link"])
@@ -212,6 +281,13 @@ def github_request_length(urlpath):
 
 
 class GhBase(dict):
+    """Base object for a node in the github dictionary tree
+
+Sets the parent of a node. Sets the supplied parameters or fetches
+them from the parent. Takes care of making the parameters accessable
+as attributes of the node with an underscore as prefix.
+    """
+
     def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
         self._parameters = kwargs
@@ -223,6 +299,9 @@ class GhBase(dict):
             setattr(self, "_" + k, v)
 
     def __repr__(self):
+        """Return a human-readable presentation of the instance
+
+Includes the classname and the parameters with their values. """
         return "<{} [{}]>".format(
             self.__class__.__name__,
             " ".join("{}={}".format(k, v)
@@ -235,8 +314,24 @@ class GhBase(dict):
 
 
 class GhResource(GhBase):
+    """Base class for nodes representing a single object/a resource
+
+Can receive its data or fetch it on its own in __init__ using the
+attribute url_template (to be specified in child classes).
+
+It provides in addition to the usual dictionary access, an update
+function to change multiple attributes with a single call to github.
+    """
+
     @property
     def url_template(self):
+        """Template to construct the github url for the resource
+
+placeholders will be filled from _parameters
+(f.ex. "/users/{user}" -> "/users/octocat").
+
+should be overwritten by child classes.
+        """
         raise NotImplementedError()
 
     def __init__(self, parent, data=None, **kwargs):
@@ -257,6 +352,8 @@ class GhResource(GhBase):
 
     def update(self, data):
         try:
+            # for PATCH updates github requires the list_key (the
+            # attribute name for identifying the object) to be set
             if self._parent.list_key not in data:
                 data = set_on_new_dict(data,
                                        self._parent.list_key,
@@ -279,35 +376,70 @@ class GhResource(GhBase):
 
 
 class GhCollection(GhBase):
+    """Base class for nodes representing a collection/a list of resources
 
-    @property
-    def list_url_template(self):
-        raise NotImplementedError("Collection is not iterable.")
+It provides in addition to the usual dictionary access, a search
+function for accessing a subset of resources and an add function to
+create new resources.
 
-    @property
-    def list_key(self):
-        raise NotImplementedError("Collection is not iterable.")
+Attributes for defining a collection are:
 
-    @property
-    def get_url_template(self):
-        raise NotImplementedError()
+child_class, child_parameter -- class and parameter name for the resources
+get_url_template             -- for accessing a single resource
+list_url_template, list_key  -- for iteration.
+add_url_template, add_method, add_required_arguments
+                             -- for adding new resources
+delete_url_template          -- for deleting resources
+    """
 
     @property
     def child_class(self):
+        """Class of a resource """
         raise NotImplementedError()
 
     @property
     def child_parameter(self):
+        """Parameter name identifying a resource """
         raise NotImplementedError()
 
     @property
+    def get_url_template(self):
+        """Template to construct the GET url of a resource """
+        raise NotImplementedError()
+
+    @property
+    def list_url_template(self):
+        """Template to construct the url to iterate the collection """
+        raise NotImplementedError("Collection is not iterable.")
+
+    @property
+    def list_key(self):
+        """Attribute which identifies a resource on the github side """
+        raise NotImplementedError("Collection is not iterable.")
+
+    @property
     def add_url_template(self):
+        """Template to construct the url to create a new resource """
         raise NotImplementedError("Can't add to collection.")
 
+    # Method used to create new resources, defaults to "POST"
     add_method = "POST"
-    # add_required_arguments = [ "name", "..." ... ]
+    # Arguments required to add a resource (checked before calling github)
+    add_required_arguments = []
+
+    @property
+    def delete_url_template(self):
+        """Template to construct the url to delete a resource """
+        raise NotImplementedError("Can't delete from collection.")
 
     def search(self, **arguments):
+        """Query github for a subset of resources
+
+Parameters:
+`**arguments` -- keyword filters passed through to github
+
+Returns (<key>, GhResource()) tuples of the resources matching arguments.
+        """
         return ((x[self.list_key],
                  self.child_class(self,
                                   data=x,
@@ -317,6 +449,10 @@ class GhCollection(GhBase):
                 for x in self._get_resources(**arguments))
 
     def _get_resources(self, **arguments):
+        """Query github for all or a subset of resources
+
+Returns a generator to iterate over all matching github resources.
+        """
         url = self.list_url_template.format(**self._parameters)
         return github_request_paginated("GET", url, params=arguments)
 
@@ -359,11 +495,13 @@ class GhCollection(GhBase):
         return self.child_class(self, data=req.json(), **parameters)
 
     def add(self, **arguments):
+        """Create a new resource """
+
         self._debug("add", *("{}={}".format(k, v)
                              for k, v in arguments.iteritems()))
 
         # check if all required arguments are provided
-        for required_arg in getattr(self, 'add_required_arguments', []):
+        for required_arg in self.add_required_arguments:
             if required_arg not in arguments:
                 raise ValueError("Not all required arguments {} provided"
                                  .format(", ".join(self.add_required_arguments)))
@@ -377,6 +515,7 @@ class GhCollection(GhBase):
                                  .format(self.child_class.__name__,
                                          req.json()["message"]))
             else:
+                # return the new resource
                 data = req.json()
                 parameters = set_on_new_dict(self._parameters,
                                              self.child_parameter,
@@ -384,6 +523,9 @@ class GhCollection(GhBase):
                 return self.child_class(parent=self, data=data, **parameters)
 
         elif self.add_method == "PUT":
+            # For PUT requests the child_parameter is already part of
+            # the url. Thus it has to be taken from arguments for
+            # constructing the url.
             if self.list_key not in arguments:
                 raise ValueError("The required argument {} was not provided"
                                  .format(self.list_key))
@@ -398,10 +540,10 @@ class GhCollection(GhBase):
                 raise ValueError("Couldn't create {} object: {}"
                                  .format(self.child_class.__name__,
                                          req.json()["message"]))
-            # else:
-            #     return self.child_class(parent=self, **tmpl_vars)
+            # PUT requests don't return any content
 
     def __delitem__(self, key):
+        """Delete resource from collection """
         self._debug("__delitem__", key)
 
         tmpl_vars = set_on_new_dict(self._parameters,
