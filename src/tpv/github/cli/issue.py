@@ -84,20 +84,36 @@ Author: {user[login]}
         print self.format(tmpl, **issue)
 
     def __call__(self):
+        # the backend by default returns all issues. if the cli user
+        # doesn't specify the state, show the open ones. if he sets
+        # state to all, don't pass it along to the backend. if he sets
+        # state to closed, the backend returns the closed ones, anyway.
         if "state" not in self.arguments:
             self.arguments["state"] = "open"
         elif self.arguments["state"] == "all":
             del self.arguments["state"]
 
+        # the mine attribute can be set to "all" (default for the call
+        # to "gh issue"), "assigned", "created", "mentioned",
+        # "subscribed"
+
         if self.mine is None:
+            # it has been omitted => show the issues of the current
+            # repository
             repo = repo_type(self.repo)
             issues = repo["issues"].search(**self.arguments)
         elif self.repo is None:
+            # if mine is set and no repo is explicitly provided
+            # show user issues
             user = user_type(None)
             arguments = set_on_new_dict(self.arguments,
                                         "filter", self.mine)
             issues = user["issues"].search(**arguments)
         else:
+            # if mine is set together with an explicit repository, we
+            # list the issues by searching the issues of this repository;
+            # thus mine can not be set to all
+
             repo = repo_type(self.repo)
             user = user_type(None)
 
@@ -222,6 +238,8 @@ class Update(Command):
 
 class Issue(List):
     """Manage issues """
+
+    # gh issue lists all user issues
     mine = "all"
 
 

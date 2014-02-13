@@ -19,12 +19,17 @@ class Org(Command):
     """Manage organisations """
 
     def __call__(self):
+        """List organizations of authenticated user"""
         user = user_type(None)
         print ", ".join(user["orgs"])
 
 
 class Show(UserShow):
-    """Show Org """
+    """Show Org
+
+For now does the same, as UserShow. but extra information like showing
+members, teams and/or repos are possible.
+    """
 
     @tpv.cli.completion(orgs=OwnOrgsDynamicCompletion())
     def __call__(self, *orgs):
@@ -80,6 +85,7 @@ site_admin: {site_admin}
         org = org_type(org_name)
 
         if self.team is not None:
+            # with the team switch, show members of the team
             try:
                 team = team_type(org, self.team)
             except KeyError:
@@ -89,6 +95,7 @@ site_admin: {site_admin}
             for login, member in team["members"].iteritems():
                 self.print_member(member)
         else:
+            # without the team switch, show members of the organisation
             for login, member in org["members"].iteritems():
                 self.print_member(member)
 
@@ -125,6 +132,9 @@ class MemRemove(Command):
                         users=TeamOrgMembersDynamicCompletion())
     def __call__(self, org, *users):
         org = org_type(org)
+
+        # remove the member either from the given team or from the
+        # organisation (which means from all teams)
         if self.team is not None:
             removefrom = team_type(org, self.team)
         else:

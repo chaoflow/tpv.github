@@ -3,7 +3,7 @@ from plumbum.cmd import git
 
 from . import Command
 from .types import user_type, repo_type
-from .aspects import stdout_to_pager
+#from .aspects import stdout_to_pager
 from .switches import add_argument_switches, ConfigSwitchAttr
 from .completion import RepositoryDynamicCompletion, OwnOrgsDynamicCompletion
 
@@ -25,7 +25,6 @@ Description: {description}
             tmpl += u"homepage: {homepage}\n"
         tmpl += u"updated: {updated_at}\n"
 
-
         print self.format(tmpl, **repo)
 
     def __call__(self, user=None):
@@ -41,6 +40,7 @@ Arguments:
 class Repo(List):
     """Manage repos """
     def __call__(self):
+        # gh repo should do the same as gh repo list
         super(Repo, self).__call__()
 
 
@@ -75,6 +75,8 @@ class Add(Command):
         user = user_type(self.org)
 
         if name is None:
+            # use the directory name of the current git repository as
+            # fallback
             name = git['rev-parse', '--show-toplevel']().strip().split('/')[-1]
 
         user["repos"].add(name=name, **self.arguments)

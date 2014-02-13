@@ -1,9 +1,8 @@
 import tpv.cli
-from aspects import stdout_to_pager
+#from aspects import stdout_to_pager
 
 from . import Command
-from ..github import set_on_new_dict
-from .types import repo_type, pull_type, user_type
+from .types import repo_type, pull_type
 from .switches import add_argument_switches, ConfigSwitchAttr
 from tpv.cli import ListCompletion
 from .completion import \
@@ -101,6 +100,15 @@ Updated at: {updated_at}
         print self.format(tmpl, **pull)
 
         if self.with_comments:
+            # there are two types of comments on a pull request
+
+            # - review comments, which belong to a piece of code.
+            #   they can be accessed by pull["comments"] and those
+            #   with the same attribute original_position refer to the
+            #   same code.
+            # - regular comments. they are accessed by the issue
+            #   associated with the pull request.
+
             hunks = dict()
             for comment in pull["comments"].itervalues():
                 hunks.setdefault(comment["original_position"],
@@ -165,6 +173,7 @@ class Update(Command):
         pull.update(self.arguments)
 
 
+# gh pull, falls back to gh pull list
 class Pull(List):
     """Manage pulls """
 
@@ -176,7 +185,7 @@ class Comment(Command):
 
 
 class CommentList(Command):
-    """List comments of a pull """
+    """List regular comments of a pull """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
                             help="The repository <user>/<repo>",
@@ -200,7 +209,7 @@ updated: {updated_at}
 
 
 class CommentAdd(Command):
-    """Add a comment """
+    """Add a regular comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
                             help="The repository <user>/<repo>",
@@ -217,7 +226,7 @@ class CommentAdd(Command):
 
 
 class CommentUpdate(Command):
-    """Edits a comment """
+    """Edit a regular comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
                             help="The repository <user>/<repo>",
@@ -234,7 +243,7 @@ class CommentUpdate(Command):
 
 
 class CommentRemove(Command):
-    """Removes a comment """
+    """Remove a comment """
 
     repo = ConfigSwitchAttr("--repo", str, argname="",
                             help="The repository <user>/<repo>",
