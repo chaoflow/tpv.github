@@ -4,7 +4,7 @@ import unittest
 import tempfile
 import os
 
-from ..github_base import RecursiveConfigParser
+from ..github_base import DictConfigParser
 
 
 class TestConfig(unittest.TestCase):
@@ -39,16 +39,14 @@ xyz = 3
         self.oldexpanduser = os.path.expanduser
         os.path.expanduser = lambda path: path.replace("~", self.dir)
 
-
     def tearDown(self):
         os.chdir(self.oldpath)
         os.path.expanduser = self.oldexpanduser
 
-    def test_recursive_config(self):
-        r = RecursiveConfigParser()
-        r.read(".ghconfig")
+    def test_dict_config(self):
+        r = DictConfigParser(".ghconfig")
 
-        self.assertEqual(r.get("test", "foo"), "1")
-        self.assertEqual(r.get("test", "bar"), "2")
-        self.assertEqual(r.get("test", "baz"), "3")
-        self.assertEqual(r.get("test", "xyz"), "3")
+        self.assertEqual(r["test.foo"], "1")
+        self.assertEqual(r["test.bar"], "2")
+        self.assertEqual(r["test.baz"], "3")
+        self.assertEqual(r["test"]["xyz"], "3")
