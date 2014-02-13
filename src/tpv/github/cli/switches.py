@@ -3,11 +3,15 @@ from ..github_base import DictConfigParser, config
 
 
 def make_function(name):
-    return lambda self, param: self.arguments.__setitem__(name, param)
+    def f(self, param):
+        self.arguments[name] = param
+    return f
 
 
 def make_bool_function(name, default):
-    return lambda self: self.arguments.__setitem__(name, not default)
+    def f(self):
+        self.arguments[name] = not default
+    return f
 
 
 def add_argument_switches(parameters):
@@ -36,30 +40,7 @@ def add_argument_switches(parameters):
 
             arguments[param["flagname"][2:]] = (param["name"], f)
 
-        init_func = getattr(cls, "__init__")
-
-        def init(self, *args):
-            if init_func:
-                init_func(self, *args)
-            else:
-                Command.__init__(self, *args)
-
-            if self.PROGNAME in config:
-                def get_value_and_set_help(option, func):
-                    value = config[self.PROGNAME][option]
-                    self._switches_by_func[func].help += "; configured to '{}'".format(value)
-                    return value
-
-                self.arguments = dict(
-                    (name, get_value_and_set_help(option, func))
-                    for option in config[self.PROGNAME]
-                    if option in arguments
-                    for name, func in (arguments[option],)
-                )
-            else:
-                self.arguments = dict()
-
-        setattr(cls, "__init__", init)
+        setattr(cls, "__add_argument_switches__", arguments)
 
         return cls
     return deco

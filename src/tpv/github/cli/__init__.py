@@ -56,6 +56,20 @@ class Command(tpv.cli.Command):
                 except KeyError:
                     pass
 
+        arguments = getattr(self, "__add_argument_switches__", {})
+        if self.PROGNAME in config_object:
+            def get_value_and_set_help(value, func):
+                self._switches_by_func[func].help += "; configured to '{}'".format(value)
+                return value
+
+            self.arguments = dict(
+                (name, get_value_and_set_help(value, func))
+                for option, value in config_object[self.PROGNAME].iteritems()
+                if option in arguments
+                for name, func in (arguments[option],)
+            )
+        else:
+            self.arguments = dict()
         self.colors = None
 
     def format(self, tmpl, **repls):
