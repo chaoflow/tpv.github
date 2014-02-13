@@ -14,6 +14,14 @@ from ..github_base import config as config_object
 
 
 class ColorFormatter(string.Formatter):
+    """A formatter which replaces color placeholders from a dictionary
+
+{=<color name>} is replaced by colors["<color name>"].
+No colors are used if stdout is not connected to a tty.
+
+Usage:
+ColorFormatter().format(string_with_colors, ...)
+    """
     def __init__(self, use_colors=True):
         self.use_colors = use_colors and sys.stdout.isatty()
 
@@ -26,6 +34,7 @@ class ColorFormatter(string.Formatter):
             return super(ColorFormatter, self).get_field(field_name,
                                                          args, kwargs)
 
+# define commonly used terminal color codes
 ColorFormatter.colors = dict(
     normal="\033[0m",
     black="\033[0;30m",
@@ -41,11 +50,15 @@ ColorFormatter.colors = dict(
 
 
 class Command(tpv.cli.Command):
-    use_colors = tpv.cli.Flag("--no-colors", help="Disable colors",
-                              default=True)
+    """Base class for all (sub)commands of the gh cli utility """
+
+    no_colors = tpv.cli.Flag("--no-colors", help="Disable colors")
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
+
+        # The help text belonging to each ConfigSwitchAttr-attributes
+        # shows default values configured in a config file.
 
         try:
             config_section = config_object[self.PROGNAME]
@@ -63,6 +76,12 @@ class Command(tpv.cli.Command):
                     except KeyError:
                         pass
 
+        # Prepare self.arguments, from default values and config values
+
+        # __add_argument_switches__ is created by the
+        # add_argument_switches decorator and holds a list
+        # [ ("<keyname>", "<swname>", "<default value>"), ... ]
+
         arguments = getattr(self, "__add_argument_switches__", [])
         self.arguments = dict(
             (keyname, config_section.get(swname, default))
@@ -72,8 +91,9 @@ class Command(tpv.cli.Command):
         self.colors = None
 
     def format(self, tmpl, **repls):
+        """Return `tmpl` formatted by ColorFormatter """
         if self.colors is None:
-            self.colors = ColorFormatter(self.use_colors)
+            self.colors = ColorFormatter(not self.no_colors)
 
         return self.colors.format(tmpl, **repls).encode("utf-8")
 
@@ -87,8 +107,14 @@ class Github(Command):
 
     @tpv.cli.switch(["-d", "--debug"], argtype=None, list=True)
     def debug(self, value):
+        """Increase debug level"""
+        try:
+            level = int(config_object["github.debug"])
+        except KeyError:
+            level = 0
+        # set "github.debug" in the most specific config dictionary
         next(config_object.by_files().itervalues()) \
-            .setdefault("github", dict())["debug"] = str(len(value))
+            .setdefault("github", dict())["debug"] = str(level + len(value))
 
     def __call__(self):
         self.help()

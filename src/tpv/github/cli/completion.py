@@ -1,5 +1,3 @@
-import sys
-
 from tpv.cli import DynamicCompletion
 from types import user_type, repo_type, org_type, team_type
 
@@ -9,7 +7,7 @@ class RepositoryDynamicCompletion(DynamicCompletion):
 
     def complete(self, command, prefix, posargs):
         if '/' not in prefix:
-            # if we don't have a user, yet, we provide the
+            # if we don't have a user yet, we provide the
             # repositories of the authenticated user as possible
             # completions
 
@@ -27,7 +25,8 @@ class RepositoryDynamicCompletion(DynamicCompletion):
 class RepoChildIdDynamicCompletion(DynamicCompletion):
     '''Completion class to dynamically complete collections of a repo
 
-Like "issues", "pulls", "comments", "pullcomments" '''
+Like "issues", "pulls", "comments", "pullcomments"
+    '''
 
     def __init__(self, child="issues"):
         self.child = child
@@ -42,7 +41,8 @@ Like "issues", "pulls", "comments", "pullcomments" '''
 
 class OwnOrgsDynamicCompletion(DynamicCompletion):
     '''Completion class to dynamically complete the organisations of the
-authorized user'''
+authorized user
+    '''
 
     def complete(self, command, prefix, posargs):
         user = user_type(None)
@@ -53,7 +53,9 @@ authorized user'''
 
 
 class TeamDynamicCompletion(DynamicCompletion):
-    '''Completion class to dynamically complete the teams of an organisation'''
+    '''Completion class to dynamically complete the teams of an
+organisation
+    '''
 
     def __init__(self, argument="org"):
         self._argument = argument
@@ -66,8 +68,9 @@ class TeamDynamicCompletion(DynamicCompletion):
 
 
 class TeamOrgMembersDynamicCompletion(DynamicCompletion):
-    '''Completion class to dynamically complete the members of either a team
-or an organisation'''
+    '''Completion class to dynamically complete the members of either a
+team or an organisation
+    '''
 
     def __init__(self, argument="org"):
         self._argument = argument

@@ -4,8 +4,11 @@ import sys
 from metachao import aspect
 import tpv.cli
 
+
 class stdout_to_pager(aspect.Aspect):
-    '''
+    '''Aspect for a Command to reroute all output to stdout into a pager
+unless a --no-pager flag is set.
+
     WARNING: as subprocess isn't able to create full-grown utf-8
     pipes, you will have to make sure utf-8 strings are encoded before
     printing to stdout.
@@ -34,5 +37,7 @@ class stdout_to_pager(aspect.Aspect):
                     raise err
                 return 0
             except Exception:
+                # make sure to kill the pager in the case of an
+                # exception
                 less.terminate()
                 raise

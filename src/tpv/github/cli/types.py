@@ -1,4 +1,3 @@
-from tpv.cli import DocPredicate
 from plumbum.cmd import git
 from itertools import ifilter
 
@@ -7,9 +6,15 @@ from ..github import Github, GhOrg, GhRepo, authenticated_user
 github = Github()
 
 
-@DocPredicate
 def repo_type(repo_name, user_fallback=None):
-    """repository"""
+    """Return GhRepo object for `repo_name`
+
+If `repo_name` is omitted, the origin remote of the current directory's
+git repository is used.
+
+if `repo_name` is not a full name (i.e. doesn't include the owner),
+either `user_fallback` or the authenticated user is used.
+    """
     if repo_name is None:
         # fetch from git repo
         url = git["config", "remote.origin.url"]().rstrip('\n')
@@ -38,9 +43,8 @@ def repo_type(repo_name, user_fallback=None):
                          .format(repo_name))
 
 
-@DocPredicate
 def user_type(user):
-    """user"""
+    """Return GhUser object for `user` or the authenticated user"""
     if user is None:
         user = authenticated_user()
 
@@ -51,9 +55,8 @@ def user_type(user):
                          .format(user))
 
 
-@DocPredicate
 def org_type(org):
-    """organisation"""
+    """Return GhOrg object for `org`"""
     try:
         return github["orgs"][org]
     except KeyError:
@@ -61,9 +64,12 @@ def org_type(org):
                          .format(org))
 
 
-@DocPredicate
 def team_type(org, team_name):
-    """teamno"""
+    """Return GhTeam object for the `team_name` team from `org`
+
+`org` can be the name of the organization or its GhOrg object.
+`team_name` defaults to "Owners"
+    """
     if not isinstance(org, GhOrg):
         org = org_type(org)
 
@@ -71,17 +77,20 @@ def team_type(org, team_name):
         team_name = "Owners"
 
     try:
-        teamid = next(ifilter(lambda x: x['name'] == team_name,
-                              org["teams"].itervalues()))['id']
-        return org["teams"][teamid]
+        # as teams are accessed by their team id, we have to iterate
+        # until we find `team_name`
+        return next(ifilter(lambda x: x['name'] == team_name,
+                            org["teams"].itervalues()))
     except (StopIteration, KeyError):
         raise ValueError("Team `{}` not found in organisation `{}` on github."
                          .format(team_name, org['login']))
 
 
-@DocPredicate
 def issue_type(repo, issueno):
-    """issueno"""
+    """Return GhIssue object for the issue with `issueno` from `repo`
+
+`repo` can be the name of the repository or its GhRepo object.
+    """
     if not isinstance(repo, GhRepo):
         repo = repo_type(repo)
 
@@ -92,9 +101,11 @@ def issue_type(repo, issueno):
                          .format(issueno, repo['full_name']))
 
 
-@DocPredicate
 def pull_type(repo, pullno):
-    """pullno"""
+    """Return GhPull object for the pull request with `pullno` from `repo`
+
+`repo` can be the name of the repository or its GhRepo object.
+    """
     if not isinstance(repo, GhRepo):
         repo = repo_type(repo)
 
