@@ -47,29 +47,28 @@ class Command(tpv.cli.Command):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
-        for func, swinfo in self._switches_by_func.iteritems():
-            if isinstance(func, ConfigSwitchAttr):
-                try:
-                    value = config_object[self.PROGNAME][swinfo.names[0]]
-                    swinfo.help += (("; " if swinfo.help else "") +
-                                    "configured to '{}'".format(value))
-                except KeyError:
-                    pass
+        try:
+            config_section = config_object[self.PROGNAME]
+        except KeyError:
+            config_section = {}
 
-        arguments = getattr(self, "__add_argument_switches__", {})
-        if self.PROGNAME in config_object:
-            def get_value_and_set_help(value, func):
-                self._switches_by_func[func].help += "; configured to '{}'".format(value)
-                return value
+        if config_section:
+            for func, swinfo in self._switches_by_func.iteritems():
+                if isinstance(func, ConfigSwitchAttr) \
+                   or hasattr(func, "__is_add_argument_switch__"):
+                    try:
+                        value = config_object[self.PROGNAME][swinfo.names[0]]
+                        swinfo.help += (("; " if swinfo.help else "") +
+                                        "configured to '{}'".format(value))
+                    except KeyError:
+                        pass
 
-            self.arguments = dict(
-                (name, get_value_and_set_help(value, func))
-                for option, value in config_object[self.PROGNAME].iteritems()
-                if option in arguments
-                for name, func in (arguments[option],)
-            )
-        else:
-            self.arguments = dict()
+        arguments = getattr(self, "__add_argument_switches__", [])
+        self.arguments = dict(
+            (keyname, config_section.get(swname, default))
+            for keyname, swname, default in arguments
+            if swname in config_section or default is not None)
+
         self.colors = None
 
     def format(self, tmpl, **repls):

@@ -1,22 +1,22 @@
-from tpv.cli import Command, switch, SwitchAttr
+from tpv.cli import switch, SwitchAttr
 from ..github_base import DictConfigParser, config
 
 
-def make_function(name):
+def make_function(keyname):
     def f(self, param):
-        self.arguments[name] = param
+        self.arguments[keyname] = param
     return f
 
 
-def make_bool_function(name, default):
+def make_bool_function(keyname, default):
     def f(self):
-        self.arguments[name] = not default
+        self.arguments[keyname] = not default
     return f
 
 
 def add_argument_switches(parameters):
     def deco(cls):
-        arguments = {}
+        arguments = []
 
         for param in parameters:
             if "swname" not in param:
@@ -36,8 +36,11 @@ def add_argument_switches(parameters):
                            mandatory=param.get("mandatory", False)
                            )(make_function(param["keyname"]))
 
+            setattr(f, "__is_add_argument_switch__", True)
+
             setattr(cls, param["keyname"], f)
-            arguments[param["swname"]] = (param["keyname"], f)
+            arguments.append((param["keyname"], param["swname"],
+                              param.get("default", None)))
 
         setattr(cls, "__add_argument_switches__", arguments)
 
