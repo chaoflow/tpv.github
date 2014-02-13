@@ -13,15 +13,15 @@ from .completion import \
 
 
 @add_argument_switches([
-    dict(name="milestone", help=u"milestone number or '*' for any"),
-    dict(name="state", help=u"Indicates the state of the issues to return. Can be either all, open or closed.", completion=ListCompletion("all", "open","closed")),
-    dict(name="assignee", help=u"Can be the name of a user. Pass in none for issues with no assigned user, and * for issues assigned to any user."),
-    dict(name="creator", help=u"The user that created the issue"),
-    dict(name="mentioned", help=u"A user that's mentioned in the issue"),
-    dict(name="labels", help=u"A list of comma separated label names"),
-    dict(name="sort", help=u"What to sort results by. Can be either created, updated, comments."),
-    dict(name="direction", help=u"The direction of the sort. Can be either asc or desc.", completion=ListCompletion("asc","desc")),
-    dict(name="since", help=u"Only issues updated at or after this time are returned (YYYY-MM-DDTHH:MM:SSZ).")
+    dict(keyname="milestone", help=u"milestone number or '*' for any"),
+    dict(keyname="state", help=u"Indicates the state of the issues to return. Can be either all, open or closed.", completion=ListCompletion("all", "open","closed")),
+    dict(keyname="assignee", help=u"Can be the name of a user. Pass in none for issues with no assigned user, and * for issues assigned to any user."),
+    dict(keyname="creator", help=u"The user that created the issue"),
+    dict(keyname="mentioned", help=u"A user that's mentioned in the issue"),
+    dict(keyname="labels", help=u"A list of comma separated label names"),
+    dict(keyname="sort", help=u"What to sort results by. Can be either created, updated, comments."),
+    dict(keyname="direction", help=u"The direction of the sort. Can be either asc or desc.", completion=ListCompletion("asc","desc")),
+    dict(keyname="since", help=u"Only issues updated at or after this time are returned (YYYY-MM-DDTHH:MM:SSZ).")
 ])
 #@stdout_to_pager
 class List(Command):
@@ -169,15 +169,15 @@ Updated: {updated_at}
 
 
 @add_argument_switches([
-    dict(name="milestone", help=u"milestone number or '*' for any"),
-    dict(name="title", help=u"The title of the issue", mandatory=True),
-    dict(name="body", flagname="--description",
+    dict(keyname="milestone", help=u"milestone number or '*' for any"),
+    dict(keyname="title", help=u"The title of the issue", mandatory=True),
+    dict(keyname="body", swname="description",
          help=u"The contents of the issue."),
-    dict(name="assignee",
+    dict(keyname="assignee",
          help=u"Login for the user that this issue should be assigned to."),
-    dict(name="milestone",
+    dict(keyname="milestone",
          help=u"Milestone to associate this issue with."),
-    dict(name="labels", flagname="--label", list=True,
+    dict(keyname="labels", swname="label", list=True,
          help=u"Labels to associate with this issue")
 ])
 class Add(Command):
@@ -194,17 +194,17 @@ class Add(Command):
 
 
 @add_argument_switches([
-    dict(name="title", help=u"The title of the issue"),
-    dict(name="body", flagname="--description",
+    dict(keyname="title", help=u"The title of the issue"),
+    dict(keyname="body", swname="description",
          help=u"The contents of the issue."),
-    dict(name="assignee",
+    dict(keyname="assignee",
          help=u"Login for the user that this issue should be assigned to."),
-    dict(name="state",
+    dict(keyname="state",
          help=u"State of the issue (open/closed).",
          completion=ListCompletion("open", "closed")),
-    dict(name="milestone",
+    dict(keyname="milestone",
          help=u"Milestone to associate this issue with."),
-    dict(name="labels", flagname="--label", list=True,
+    dict(keyname="labels", swname="label", list=True,
          help=u"Labels to associate with this issue")
 ])
 class Update(Command):

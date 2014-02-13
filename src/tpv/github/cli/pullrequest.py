@@ -12,9 +12,9 @@ from .completion import \
 
 
 @add_argument_switches([
-    dict(name="state", help=u"Indicates the state of the pulls to return. Can be either open or closed.", completion=ListCompletion("open","closed")),
-    dict(name="head", help=u"Filter pulls by head user and branch name in the format of user:ref-name. Example: github:new-script-format."),
-    dict(name="base", help=u"Filter pulls by base branch name. Example: gh-pages.")
+    dict(keyname="state", help=u"Indicates the state of the pulls to return. Can be either open or closed.", completion=ListCompletion("open","closed")),
+    dict(keyname="head", help=u"Filter pulls by head user and branch name in the format of user:ref-name. Example: github:new-script-format."),
+    dict(keyname="base", help=u"Filter pulls by base branch name. Example: gh-pages.")
 ])
 #@stdout_to_pager
 class List(Command):
@@ -125,10 +125,10 @@ Updated at: {updated_at}
 
 
 @add_argument_switches([
-    dict(name="title", help=u"The title of the pull", mandatory=True),
-    dict(name="head", help=u"The branch, where your changes are implemented.", mandatory=True),
-    dict(name="base", help=u"The branch, where you want your changes pulled into.", mandatory=True),
-    dict(name="body", flagname="--description",
+    dict(keyname="title", help=u"The title of the pull", mandatory=True),
+    dict(keyname="head", help=u"The branch, where your changes are implemented.", mandatory=True),
+    dict(keyname="base", help=u"The branch, where you want your changes pulled into.", mandatory=True),
+    dict(keyname="body", swname="description",
          help=u"The contents of the pull."),
 ])
 class Add(Command):
@@ -145,10 +145,10 @@ class Add(Command):
 
 
 @add_argument_switches([
-    dict(name="title", help=u"The title of the pull"),
-    dict(name="body", flagname="--description",
+    dict(keyname="title", help=u"The title of the pull"),
+    dict(keyname="body", swname="description",
          help=u"The contents of the pull."),
-    dict(name="state",
+    dict(keyname="state",
          help=u"State of the pull (open/closed).",
          completion=ListCompletion("open", "closed"))
 ])

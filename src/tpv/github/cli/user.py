@@ -42,19 +42,19 @@ class Show(Command):
 
 
 @add_argument_switches([
-    dict(name="name",
+    dict(keyname="name",
          help="The new name of the user"),
-    dict(name="email",
+    dict(keyname="email",
          help="Publicly visible email address."),
-    dict(name="blog",
+    dict(keyname="blog",
          help="The new blog URL of the user."),
-    dict(name="company",
+    dict(keyname="company",
          help="The new company of the user."),
-    dict(name="location",
+    dict(keyname="location",
          help="The new location of the user."),
-    dict(name="hireable",
+    dict(keyname="hireable",
          help="The new hiring availability of the user (true/false)."),
-    dict(name="bio",
+    dict(keyname="bio",
          help="The new short biography of the user.")
 ])
 class Update(Command):

@@ -19,26 +19,25 @@ def add_argument_switches(parameters):
         arguments = {}
 
         for param in parameters:
-            if "flagname" not in param:
-                param["flagname"] = "--" + param["name"].replace("_", "-")
+            if "swname" not in param:
+                param["swname"] = param["keyname"].replace("_", "-")
 
-            if param.get("type", str) == bool:
-                f = make_bool_function(param["name"], param["default"])
-                f = switch(param["flagname"],
-                           help=param.get("help"))(f)
+            argtype = param.get("argtype", str)
+            if argtype == bool:
+                f = make_bool_function(param["keyname"], param["default"])
+                f = switch(param["swname"], help=param.get("help"))(f)
             else:
-                f = switch(param["flagname"],
-                           argtype=param.get("type", str),
+                f = switch(param["swname"],
+                           argtype=argtype,
                            argname="",
                            help=param.get("help"),
                            list=param.get("list", False),
                            completion=param.get("completion", None),
                            mandatory=param.get("mandatory", False)
-                           )(make_function(param["name"]))
+                           )(make_function(param["keyname"]))
 
-            setattr(cls, param["name"], f)
-
-            arguments[param["flagname"][2:]] = (param["name"], f)
+            setattr(cls, param["keyname"], f)
+            arguments[param["swname"]] = (param["keyname"], f)
 
         setattr(cls, "__add_argument_switches__", arguments)
 

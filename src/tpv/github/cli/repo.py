@@ -45,23 +45,23 @@ class Repo(List):
 
 
 @add_argument_switches([
-    dict(name="description", type=str,
+    dict(keyname="description", argtype=str,
          help="A short description of the repository"),
-    dict(name="homepage", type=str,
+    dict(keyname="homepage", argtype=str,
          help="A URL with more information about the repository"),
-    dict(name="private", type=bool, default=False,
+    dict(keyname="private", argtype=bool, default=False,
          help="Either true to create a private repository, or false to create a public one"),
-    dict(name="has_issues", flagname="--no-issues", type=bool, default=True,
+    dict(keyname="has_issues", swname="no-issues", argtype=bool, default=True,
          help="Either true to enable issues for this repository, false to disable them"),
-    dict(name="has_wiki", flagname="--no-wiki", type=bool, default=True,
+    dict(keyname="has_wiki", swname="no-wiki", argtype=bool, default=True,
          help="Either true to enable the wiki for this repository, false to disable it"),
-    dict(name="has_downloads", flagname="--no-downloads", type=bool, default=True,
+    dict(keyname="has_downloads", swname="no-downloads", argtype=bool, default=True,
          help="Either true to enable downloads for this repository, false to disable them"),
-    dict(name="team_id", type=int,
+    dict(keyname="team_id", argtype=int,
          help="The id of the team that will be granted access to this repository"),
-    dict(name="auto_init", type=bool, default=False,
+    dict(keyname="auto_init", argtype=bool, default=False,
          help="Pass true to create an initial commit with empty README"),
-    dict(name="gitignore_template", type=str,
+    dict(keyname="gitignore_template", argtype=str,
          help="Desired language or platform .gitignore template to apply")
 ])
 class Add(Command):
@@ -81,25 +81,25 @@ class Add(Command):
 
 
 @add_argument_switches([
-    dict(name="name", type=str,
+    dict(keyname="name", argtype=str,
          help="A new name for the repository"),
-    dict(name="description", type=str,
+    dict(keyname="description", argtype=str,
          help="A short description of the repository"),
-    dict(name="homepage", type=str,
+    dict(keyname="homepage", argtype=str,
          help="A URL with more information about the repository"),
-    dict(name="private", type=bool, default=False,
+    dict(keyname="private", argtype=bool, default=False,
          help="Either true to create a private repository, or false to create a public one"),
-    dict(name="has_issues", flagname="--no-issues", type=bool, default=True,
+    dict(keyname="has_issues", swname="no-issues", argtype=bool, default=True,
          help="Either true to enable issues for this repository, false to disable them"),
-    dict(name="has_wiki", flagname="--no-wiki", type=bool, default=True,
+    dict(keyname="has_wiki", swname="no-wiki", argtype=bool, default=True,
          help="Either true to enable the wiki for this repository, false to disable it"),
-    dict(name="has_downloads", flagname="--no-downloads", type=bool, default=True,
+    dict(keyname="has_downloads", swname="no-downloads", argtype=bool, default=True,
          help="Either true to enable downloads for this repository, false to disable them"),
-    dict(name="team_id", type=int,
+    dict(keyname="team_id", argtype=int,
          help="The id of the team that will be granted access to this repository"),
-    dict(name="auto_init", type=bool, default=False,
+    dict(keyname="auto_init", argtype=bool, default=False,
          help="Pass true to create an initial commit with empty README"),
-    dict(name="gitignore_template", type=str,
+    dict(keyname="gitignore_template", argtype=str,
          help="Desired language or platform .gitignore template to apply")
 ])
 class Update(Command):

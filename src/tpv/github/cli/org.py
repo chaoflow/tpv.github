@@ -32,15 +32,15 @@ class Show(UserShow):
 
 
 @add_argument_switches([
-    dict(name="name",
+    dict(keyname="name",
          help="The shorthand name of the company."),
-    dict(name="email",
+    dict(keyname="email",
          help="Publicly visible email address."),
-    dict(name="company",
+    dict(keyname="company",
          help="The company name."),
-    dict(name="location",
+    dict(keyname="location",
          help="The location."),
-    dict(name="billing_email",
+    dict(keyname="billing_email",
          help="Billing email address. Not public.")
 ])
 class Update(Command):
@@ -181,10 +181,10 @@ members: {members}
 
 
 @add_argument_switches([
-    dict(name="repo_names", flagname="--repo", list=True,
+    dict(keyname="repo_names", swname="repo", list=True,
          help="The repositories to add the team to",
          completion=RepositoryDynamicCompletion()),
-    dict(name="permission",
+    dict(keyname="permission",
          help="The permission to grant the team. One of pull, push or admin.",
          completion=ListCompletion("pull", "push", "admin"))
 ])
