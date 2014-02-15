@@ -90,7 +90,7 @@ class TestGithubRepos(TestCase):
         with self.request_override([
                 dict(urlpath="/users/octocat",
                      response_body='{ "login": "octocat" }'),
-                dict(times=3,
+                dict(times=2,
                      urlpath="/users/octocat/repos",
                      response_body='''
 [

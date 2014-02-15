@@ -18,11 +18,6 @@ class TestGithubIssues(TestCase):
                      response_body='[ { "number": 1, "state": "open"} ]'),
                 dict(urlpath="/repos/octocat/Hello-World/issues",
                      params=dict(state="closed"),
-                     response_body='[ { "number": 2, "state": "closed" } ]'),
-                dict(urlpath="/repos/octocat/Hello-World/issues",
-                     response_body='[ { "number": 1, "state": "open"} ]'),
-                dict(urlpath="/repos/octocat/Hello-World/issues",
-                     params=dict(state="closed"),
                      response_body='[ { "number": 2, "state": "closed" } ]')]):
             repo = Github()["repos"]["octocat"]["Hello-World"]
             issues = repo["issues"]
@@ -136,7 +131,7 @@ class TestGithubComments(TestCase):
                      response_body='{ "name": "Hello-World" }'),
                 dict(urlpath="/repos/octocat/Hello-World/issues/1",
                      response_body='{ "number": 1, "state": "open"}'),
-                dict(times=3,
+                dict(times=2,
                      urlpath="/repos/octocat/Hello-World/issues/1/comments",
                      response_body='[ { "id": 1, "body": "Foo" },'
                                    '  { "id": 2, "body": "Bar" } ]')]):

@@ -7,7 +7,9 @@ import re
 from itertools import chain
 
 from metachao import aspect
+from metachao.classtree import CLASSTREE_ATTR
 from tpv.ordereddict import OrderedDict
+import tpv.generic
 
 URL_BASE = 'https://api.github.com'
 
@@ -288,6 +290,10 @@ them from the parent. Takes care of making the parameters accessable
 as attributes of the node with an underscore as prefix.
     """
 
+    # class used for caching nodes of this type
+    # (consulted by the cache aspect from tpv.generic)
+    cache_class = dict
+
     def __init__(self, parent, data=None, **kwargs):
         self._parent = parent
         self._parameters = kwargs
@@ -311,6 +317,9 @@ Includes the classname and the parameters with their values. """
     def _debug(self, func, *args):
         if "github.debug" in config and int(config["github.debug"]) >= 1:
             sys.stderr.write("{}.{}({})\n".format(self, func, ", ".join(args)))
+
+    def add(self, **arguments):
+        raise NotImplementedError("Nothing to see here, move along")
 
 
 class GhResource(GhBase):
@@ -554,3 +563,38 @@ Returns a generator to iterate over all matching github resources.
             raise ValueError("Couldn't delete {} object: {}"
                              .format(self.child_class.__name__,
                                      req.json()["message"]))
+
+
+class cache(tpv.generic.cache):
+    @aspect.plumb
+    def add(_next, self, **arguments):
+        ret = _next(**arguments)
+
+        if self.cache_keys is None:
+            pass
+        elif self.add_method == "POST":
+            self.cache_keys.append(ret[self.list_key])
+        elif self.add_method == "PUT":
+            self.cache_keys.append(arguments[self.list_key])
+
+        return ret
+
+    def _wrap_child(self, child):
+        cls = child.__class__
+        child = cache(cls, cache=self._get_cache(child))(
+            parent=self,
+            data=child.iteritems() if isinstance(child, GhResource) else None,
+            **child._parameters
+        )
+
+        # TODO: change classtree, so they work with aspects
+        # workaround: copy over classtree child relations
+        # as the node metaclass init function is called on the derived
+        # aspect class, which clears the attribute.
+        try:
+            setattr(child.__class__, CLASSTREE_ATTR,
+                    getattr(cls, CLASSTREE_ATTR))
+        except AttributeError:
+            pass
+
+        return child

@@ -1,10 +1,17 @@
 from __future__ import absolute_import
 
 from .base import TestCase
-from ..github import github_request_paginated
+from ..github import Github, github_request_paginated, GhUsers
 
 
 class TestGithub(TestCase):
+    def test_github_instantiation(self):
+        github = Github()
+        self.assertTrue(isinstance(github, Github))
+        users = github["users"]
+        self.assertTrue(isinstance(users, GhUsers))
+
+
     def test_github_request_paginated(self):
         with self.request_override([
                 dict(urlpath="/user/repos?per_page=2",

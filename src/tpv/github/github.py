@@ -2,8 +2,9 @@ from metachao import classtree
 import itertools
 
 from .github_base import \
+    cache, \
     extract_repo_from_issue_url, \
-    GhResource, GhCollection, \
+    GhBase, GhResource, GhCollection, \
     github_request, github_request_paginated, \
     set_on_new_dict, authenticated_user
 
@@ -388,9 +389,13 @@ class GhUsers(GhCollection):
     get_url_template = "/users/{user}"
 
 
+@cache(node_class=GhBase)
 @classtree.instantiate
-class Github(classtree.Base):
+class Github(GhBase, classtree.Base):
     _parameters = dict()
+
+    def __init__(self):
+        GhBase.__init__(self, None)
 
     def __getitem__(self, key):
         return github_request("GET", "").json()[key]

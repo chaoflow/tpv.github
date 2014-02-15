@@ -51,7 +51,7 @@ class TestGithubOrgTeams(TestCase):
         with self.request_override([
                 dict(urlpath="/orgs/github",
                      response_body='{ "login": "github" }'),
-                dict(times=3,
+                dict(times=2,
                      urlpath="/orgs/github/teams",
                      response_body='[ { "id": 1, "name": "Owners" },'
                                    '  { "id": 2, "name": "dev" } ]')]):
@@ -152,7 +152,7 @@ class TestGithubOrgTeamMembers(TestCase):
                      response_body='{ "login": "github" }'),
                 dict(urlpath="/teams/1",
                      response_body='{ "id": 1, "name": "Owners" }'),
-                dict(times=3,
+                dict(times=2,
                      urlpath="/teams/1/members",
                      response_body='[ { "id": 1, "login": "octocat" },'
                                    '  { "id": 2, "login": "ninocat" } ]')]):
@@ -214,7 +214,7 @@ class TestGithubOrgTeamRepos(TestCase):
                      response_body='{ "login": "github" }'),
                 dict(urlpath="/teams/1",
                      response_body='{ "id": 1, "name": "Owners" }'),
-                dict(times=3,
+                dict(times=2,
                      urlpath="/teams/1/repos",
                      response_body='[ { "id": 1, "name": "Hello-World" },'
                                    '  { "id": 2, "name": "Hello-Earth" } ]')]):
@@ -281,7 +281,7 @@ class TestGithubOrgMembers(TestCase):
         with self.request_override([
                 dict(urlpath="/orgs/github",
                      response_body='{ "login": "github" }'),
-                dict(times=3,
+                dict(times=2,
                      urlpath="/orgs/github/members",
                      response_body='[ { "id": 1, "login": "octocat" },'
                                    '  { "id": 2, "login": "ninocat" } ]')]):
