@@ -11,8 +11,6 @@ class TestGithubPulls(TestCase):
 
     def test_repo_pulls(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name": "Hello-World" }'),
                 dict(urlpath="/repos/octocat/Hello-World/pulls",
@@ -47,8 +45,6 @@ class TestGithubPulls(TestCase):
 
     def test_pulls_getitem(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name": "Hello-World" }'),
                 dict(urlpath="/repos/octocat/Hello-World/pulls/1",
@@ -72,8 +68,6 @@ class TestGithubPulls(TestCase):
 
     def test_pulls_add(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name": "Hello-World" }'),
                 dict(method="POST",
@@ -97,8 +91,6 @@ class TestGithubPulls(TestCase):
 
     def test_pull_setitem(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name": "Hello-World" }'),
                 dict(urlpath="/repos/octocat/Hello-World/pulls/1",
@@ -114,8 +106,6 @@ class TestGithubPulls(TestCase):
             pull["body"] = "New body"
 
         with self.request_override([
-                dict(urlpath="/users/ninocat",
-                     response_body='{ "login": "ninocat" }'),
                 dict(urlpath="/repos/ninocat/Hello-Earth",
                      response_body='{ "name": "Hello-Earth" }'),
                 dict(urlpath="/repos/ninocat/Hello-Earth/pulls/1",
@@ -135,8 +125,6 @@ class TestGithubComments(TestCase):
 
     def test_comments_iter(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name": "Hello-World" }'),
                 dict(urlpath="/repos/octocat/Hello-World/pulls/1",
@@ -167,8 +155,6 @@ class TestGithubComments(TestCase):
 
     def test_comments_getitem(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name": "Hello-World" }'),
                 dict(urlpath="/repos/octocat/Hello-World/pulls/1",
@@ -194,8 +180,6 @@ class TestGithubComments(TestCase):
 
     def test_comments_add(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name": "Hello-World" }'),
                 dict(urlpath="/repos/octocat/Hello-World/pulls/1",
@@ -217,8 +201,6 @@ class TestGithubComments(TestCase):
 
     def test_comment_setitem(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name": "Hello-World" }'),
                 dict(urlpath="/repos/octocat/Hello-World/pulls/1",
@@ -236,8 +218,6 @@ class TestGithubComments(TestCase):
             comment["body"] = "New body"
 
         with self.request_override([
-                dict(urlpath="/users/ninocat",
-                     response_body='{ "login": "ninocat" }'),
                 dict(urlpath="/repos/ninocat/Hello-Earth",
                      response_body='{ "name": "Hello-Earth" }'),
                 dict(urlpath="/repos/ninocat/Hello-Earth/pulls/1",

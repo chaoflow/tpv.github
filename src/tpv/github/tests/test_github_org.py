@@ -15,7 +15,7 @@ class TestGithubOrgs(TestCase):
         self.assertTrue(isinstance(orgs, GhOrgs))
 
         with self.request_override([
-                dict(urlpath="/users/octocat",
+                dict(urlpath="/user",
                      response_body='{ "login": "octocat" }'),
                 dict(urlpath="/user/orgs",
                      response_body='[ { "login": "github" } ]')]):

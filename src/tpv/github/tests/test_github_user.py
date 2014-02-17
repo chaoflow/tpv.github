@@ -8,7 +8,7 @@ class TestGithubUser(TestCase):
 
     def test_user_getitem(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
+                dict(urlpath="/user",
                      response_body='{ "login": "octocat",'
                                    '  "type": "User",'
                                    '  "location": "Berlin" }'),
@@ -25,7 +25,7 @@ class TestGithubUser(TestCase):
 
     def test_user_setitem(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
+                dict(urlpath="/user",
                      response_body='{ "login": "octocat" }'),
                 dict(method="PATCH", urlpath="/user",
                      data=dict(bio="Foo"),

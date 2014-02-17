@@ -12,8 +12,6 @@ class TestGithubRepos(TestCase):
         github = Github()
 
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name":"Hello-World",'
                                    '  "full_name":"octocat/Hello-World" }'),
@@ -34,8 +32,6 @@ class TestGithubRepos(TestCase):
         github = Github()
 
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(method="POST", urlpath="/user/repos",
                      data=dict(name="Hello-World",
                                description="This is your first repo"),
@@ -51,12 +47,10 @@ class TestGithubRepos(TestCase):
             self.assertEqual(repo["name"], "Hello-World")
 
         with self.request_override([
-                dict(times=2,
-                     urlpath="/users/ninocat",
+                dict(urlpath="/users/ninocat",
                      response_body='{ "login": "ninocat",'
                                    '  "type": "User" }'),
-                dict(times=2,
-                     urlpath="/users/foreignorg",
+                dict(urlpath="/users/foreignorg",
                      response_body='{ "login": "foreignorg",'
                                    '  "type": "Organization" }'),
                 dict(method="POST", urlpath="/orgs/foreignorg/repos",
@@ -76,8 +70,6 @@ class TestGithubRepos(TestCase):
         github = Github()
 
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(method="DELETE", urlpath="/repos/octocat/Hello-World",
                      response_status="204 No Content",
                      response_body='null')]):
@@ -88,8 +80,6 @@ class TestGithubRepos(TestCase):
 
     def test_user_repos_iter(self):
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(times=2,
                      urlpath="/users/octocat/repos",
                      response_body='''
@@ -128,8 +118,6 @@ class TestGithubRepo(TestCase):
         github = Github()
 
         with self.request_override([
-                dict(urlpath="/users/octocat",
-                     response_body='{ "login": "octocat" }'),
                 dict(urlpath="/repos/octocat/Hello-World",
                      response_body='{ "name":"Hello-World",'
                                    '  "full_name":"octocat/Hello-World" }'),
@@ -138,8 +126,6 @@ class TestGithubRepo(TestCase):
                      data=dict(name="Hello-World",
                                description="foo"),
                      response_body='{ "name":"Hello-World" }'),
-                dict(urlpath="/users/ninocat",
-                     response_body='{ "login": "ninocat" }'),
                 dict(urlpath="/repos/ninocat/Hello-Earth",
                      response_body='{ "name":"Hello-Earth" }'),
                 dict(urlpath="/repos/ninocat/Hello-Earth",

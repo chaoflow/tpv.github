@@ -22,12 +22,10 @@ class GhRepoComments(GhCollection):
     child_class = GhComment
     child_parameter = "commentid"
 
-    get_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
-
     list_url_template = "/repos/{user}/{repo}/issues/comments"
     list_key = "id"
 
-    delete_url_template = get_url_template
+    delete_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
 
 
 class GhIssueComments(GhCollection):
@@ -37,15 +35,13 @@ class GhIssueComments(GhCollection):
     child_class = GhComment
     child_parameter = "commentid"
 
-    get_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
-
     list_url_template = "/repos/{user}/{repo}/issues/{issueno}/comments"
     list_key = "id"
 
     add_url_template = list_url_template
     add_required_arguments = ["body"]
 
-    delete_url_template = get_url_template
+    delete_url_template = "/repos/{user}/{repo}/issues/comments/{commentid}"
 
 
 @classtree.instantiate
@@ -64,8 +60,6 @@ class GhRepoIssues(GhCollection):
 
     child_class = GhIssue
     child_parameter = "issueno"
-
-    get_url_template = "/repos/{user}/{repo}/issues/{issueno}"
 
     list_url_template = "/repos/{user}/{repo}/issues"
     list_key = "number"
@@ -102,15 +96,13 @@ class GhPullComments(GhCollection):
     child_class = GhPullComment
     child_parameter = "commentid"
 
-    get_url_template = "/repos/{user}/{repo}/pulls/comments/{commentid}"
-
     list_url_template = "/repos/{user}/{repo}/pulls/{issueno}/comments"
     list_key = "id"
 
     add_url_template = list_url_template
     add_required_arguments = ["body"]
 
-    delete_url_template = get_url_template
+    delete_url_template = "/repos/{user}/{repo}/pulls/comments/{commentid}"
 
 
 class GhRepoPullComments(GhCollection):
@@ -120,12 +112,10 @@ class GhRepoPullComments(GhCollection):
     child_class = GhPullComment
     child_parameter = "commentid"
 
-    get_url_template = "/repos/{user}/{repo}/pulls/comments/{commentid}"
-
     list_url_template = "/repos/{user}/{repo}/pulls/comments"
     list_key = "id"
 
-    delete_url_template = get_url_template
+    delete_url_template = "/repos/{user}/{repo}/pulls/comments/{commentid}"
 
 
 @classtree.instantiate
@@ -145,8 +135,6 @@ class GhRepoPulls(GhCollection):
 
     child_class = GhPull
     child_parameter = "issueno"
-
-    get_url_template = "/repos/{user}/{repo}/pulls/{issueno}"
 
     list_url_template = "/repos/{user}/{repo}/pulls"
     list_key = "number"
@@ -190,8 +178,6 @@ class GhUserRepos(GhCollection):
     child_class = GhRepo
     child_parameter = "repo"
 
-    get_url_template = "/repos/{user}/{repo}"
-
     list_url_template = "/users/{user}/repos"
     list_key = "name"
 
@@ -207,7 +193,7 @@ class GhUserRepos(GhCollection):
 
         raise ValueError("Couldn't create repository: No permission.")
 
-    delete_url_template = get_url_template
+    delete_url_template = "/repos/{user}/{repo}"
 
 
 class GhRepos(GhCollection):
@@ -216,8 +202,6 @@ class GhRepos(GhCollection):
 
     child_class = GhUserRepos
     child_parameter = "user"
-
-    get_url_template = "/users/{user}"
 
 
 class GhMember(GhResource):
@@ -272,8 +256,6 @@ class GhOrgTeams(GhCollection):
     child_class = GhTeam
     child_parameter = "teamid"
 
-    get_url_template = "/teams/{teamid}"
-
     list_url_template = "/orgs/{org}/teams"
     list_key = "id"
 
@@ -311,18 +293,11 @@ class GhOrgs(GhCollection):
     child_class = GhOrg
     child_parameter = "org"
 
-    get_url_template = "/orgs/{org}"
-
 
 class GhUserIssues(GhRepoIssues):
     """The issues of the authenticated user"""
 
     list_url_template = "/user/issues"
-
-    # Getting a single resource can only be done from within a repository
-    @property
-    def get_url_template(self):
-        raise NotImplementedError()
 
     # Creating a new issue can only be done from within a repository
     @property
@@ -356,8 +331,6 @@ class GhUserOrgs(GhCollection):
     child_class = GhOrg
     child_parameter = "org"
 
-    get_url_template = "/orgs/{org}"
-
     list_url_template = "/user/orgs"
     list_key = "login"
 
@@ -385,8 +358,6 @@ class GhUsers(GhCollection):
 
     child_class = GhUser
     child_parameter = "user"
-
-    get_url_template = "/users/{user}"
 
 
 #@cache(node_class=GhBase)

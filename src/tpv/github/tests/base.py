@@ -59,6 +59,9 @@ class TestCase(unittest.TestCase):
 
         self.assertEqual(len(requests), 0)
 
+    def setUp(self):
+        github.Github().clear_cache()
+
     # def setUp(self):
     #     self.answers = dict()
 

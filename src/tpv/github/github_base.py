@@ -1,7 +1,10 @@
 from requests import request
+import sqlite3
 import json
 import os
 import sys
+import time
+import pickle
 from ConfigParser import ConfigParser
 import re
 from itertools import chain
@@ -295,6 +298,8 @@ as attributes of the node with an underscore as prefix.
     cache_class = dict
 
     def __init__(self, parent, data=None, **kwargs):
+        self.init_sqlite()
+
         self._parent = parent
         self._parameters = kwargs
 
@@ -321,6 +326,81 @@ Includes the classname and the parameters with their values. """
     def add(self, **arguments):
         raise NotImplementedError("Nothing to see here, move along")
 
+    expiral_time = 24*60*60
+
+    @classmethod
+    def init_sqlite(cls):
+        if hasattr(cls, "sqlite"):
+            return
+
+        try:
+            filepath = config["Cache DB.filepath"]
+        except KeyError:
+            filepath = "/tmp/githubcache.db"
+
+        cls.sqlite = sqlite3.connect(filepath,
+                                     isolation_level=None)
+
+        cls.sqlite.execute("create table if not exists cache"
+                           "(identifier text, parameters text,"
+                           " expires integer, data blob,"
+                           " primary key(identifier, parameters))")
+
+    @classmethod
+    def clear_cache(cls):
+        cls.sqlite.execute("delete from cache")
+
+    def serialize(self, identifier=None):
+        '''Save dictionary items into sqlite table
+
+Expiral time is set in seconds via config section "Expiral time" in
+__class__.__name__ options. It falls back to attribute `expiral_time`
+(a day).
+
+a joined version of self._parameters is used as secondary key.
+
+`identifier` -- String usually composed of class name
+                and perhaps a suffix like "_partial"
+        '''
+
+        if identifier is None:
+            identifier = self.__class__.__name__
+
+        parameters = ",".join("{}={}".format(k, v)
+                              for k, v in self._parameters.iteritems())
+
+        try:
+            expiral_time = config["Expiral time"][self.__class__.__name__]
+        except KeyError:
+            expiral_time = self.expiral_time
+
+        data = super(GhBase, self).items()
+        self.sqlite.execute("insert or replace into cache values (?,?,?,?)",
+                            (identifier, parameters,
+                             int(time.time() + expiral_time),
+                             buffer(pickle.dumps(data))))
+
+    def deserialize(self, identifier=None):
+        if identifier is None:
+            identifier = self.__class__.__name__
+
+        self.sqlite.execute("delete from cache where expires < ?",
+                            (time.time(),))
+        c = self.sqlite.cursor()
+
+        parameters = ",".join("{}={}".format(k, v)
+                              for k, v in self._parameters.iteritems())
+        c.execute('select data from cache where identifier=? and parameters=?',
+                  (identifier, parameters))
+        row = c.fetchone()
+        if row is None:
+            return False
+        else:
+            data = pickle.loads(row[0])
+
+            super(GhBase, self).update(data)
+            return True
+
 
 class GhResource(GhBase):
     """Base class for nodes representing a single object/a resource
@@ -346,14 +426,54 @@ should be overwritten by child classes.
     def __init__(self, parent, data=None, **kwargs):
         super(GhResource, self).__init__(parent, data, **kwargs)
 
-        if data is None:
-            url = self.url_template.format(**self._parameters)
-            data = github_request("GET", url).json()
-        super(GhResource, self).update(data)
+        if data is not None:
+            self._is_partial = True
+            super(GhResource, self).update(data)
+            self.serialize()
+        else:
+            # self.complete_data raises ValueError if it couldn't
+            # fetch the resource
+            self.deserialize() or self.complete_data()
+
+    def serialize(self):
+        super(GhResource, self).serialize(self.__class__.__name__ +
+                                          ("_partial"
+                                           if self._is_partial else ""))
+
+    def deserialize(self):
+        if super(GhResource, self).deserialize(self.__class__.__name__):
+            self._is_partial = False
+            return True
+        elif super(GhResource, self).deserialize(self.__class__.__name__
+                                                 + "_partial"):
+            self._is_partial = True
+            return True
+
+        return False
+
+    def complete_data(self):
+        url = self.url_template.format(**self._parameters)
+        req = github_request("GET", url)
+
+        if '200 OK' not in req.headers["status"]:
+            raise ValueError("Couldn't fetch {} object: {}"
+                             .format(self, req.json()["message"]))
+
+        super(GhResource, self).update(req.json())
+        self._is_partial = False
+        self.serialize()
+        return True
 
     def __getitem__(self, key):
         self._debug("__getitem__", key)
-        return super(GhResource, self).__getitem__(key)
+        try:
+            return super(GhResource, self).__getitem__(key)
+        except KeyError:
+            if self._is_partial:
+                self.complete_data()
+                return super(GhResource, self).__getitem__(key)
+            else:
+                raise
 
     def __setitem__(self, key, value):
         self._debug("__setitem__", key, value)
@@ -382,6 +502,8 @@ should be overwritten by child classes.
         # update the cached data with the live data from
         # github. a detailed representation.
         super(GhResource, self).update(req.json())
+
+        self.serialize()
 
 
 class GhCollection(GhBase):
@@ -412,11 +534,6 @@ delete_url_template          -- for deleting resources
         raise NotImplementedError()
 
     @property
-    def get_url_template(self):
-        """Template to construct the GET url of a resource """
-        raise NotImplementedError()
-
-    @property
     def list_url_template(self):
         """Template to construct the url to iterate the collection """
         raise NotImplementedError("Collection is not iterable.")
@@ -441,6 +558,10 @@ delete_url_template          -- for deleting resources
         """Template to construct the url to delete a resource """
         raise NotImplementedError("Can't delete from collection.")
 
+    def __init__(self, parent, data=None, **parameters):
+        super(GhCollection, self).__init__(parent, data=data, **parameters)
+        self.deserialize()
+
     def search(self, **arguments):
         """Query github for a subset of resources
 
@@ -449,13 +570,29 @@ Parameters:
 
 Returns (<key>, GhResource()) tuples of the resources matching arguments.
         """
-        return ((x[self.list_key],
-                 self.child_class(self,
-                                  data=x,
-                                  **set_on_new_dict(self._parameters,
-                                                    self.child_parameter,
-                                                    x[self.list_key])))
-                for x in self._get_resources(**arguments))
+        def item(key, data=None):
+            return (key,
+                    self.child_class(self,
+                                     data=data,
+                                     **set_on_new_dict(self._parameters,
+                                                       self.child_parameter,
+                                                       key)))
+
+        if len(arguments) > 0:
+            for x in self._get_resources(**arguments):
+                yield item(x[self.list_key], x)
+        elif super(GhCollection, self).__len__() > 0 \
+            and len([x for x in super(GhCollection, self).itervalues()
+                     if x is None]) == 0:
+            for x in super(GhCollection, self).iterkeys():
+                yield item(x)
+        else:
+            keys_candidate = []
+            for x in self._get_resources(**arguments):
+                keys_candidate.append((x[self.list_key], 'partial'))
+                yield item(x[self.list_key], x)
+            super(GhCollection, self).update(keys_candidate)
+            self.serialize()
 
     def _get_resources(self, **arguments):
         """Query github for all or a subset of resources
@@ -466,7 +603,16 @@ Returns a generator to iterate over all matching github resources.
         return github_request_paginated("GET", url, params=arguments)
 
     def iterkeys(self):
-        return (x[self.list_key] for x in self._get_resources())
+        if super(GhCollection, self).__len__() > 0:
+            for x in super(GhCollection, self).iterkeys():
+                yield x
+        else:
+            keys_candidate = []
+            for x in self._get_resources():
+                keys_candidate.append((x[self.list_key], None))
+                yield x[self.list_key]
+            super(GhCollection, self).update(keys_candidate)
+            self.serialize()
 
     __iter__ = iterkeys
 
@@ -496,12 +642,10 @@ Returns a generator to iterate over all matching github resources.
                                      self.child_parameter,
                                      key)
 
-        url = self.get_url_template.format(**parameters)
-        req = github_request("GET", url)
-        if "200" not in req.headers["status"]:
-            raise KeyError("Resource {} does not exist.".format(key))
-
-        return self.child_class(self, data=req.json(), **parameters)
+        try:
+            return self.child_class(self, **parameters)
+        except ValueError:
+            raise KeyError(key)
 
     def add(self, **arguments):
         """Create a new resource """
@@ -526,6 +670,10 @@ Returns a generator to iterate over all matching github resources.
             else:
                 # return the new resource
                 data = req.json()
+                super(GhCollection, self).__setitem__(data[self.list_key],
+                                                      'partial')
+                self.serialize()
+
                 parameters = set_on_new_dict(self._parameters,
                                              self.child_parameter,
                                              data[self.list_key])
@@ -551,6 +699,10 @@ Returns a generator to iterate over all matching github resources.
                                          req.json()["message"]))
             # PUT requests don't return any content
 
+            super(GhCollection, self).__setitem__(arguments[self.list_key],
+                                                  None)
+            self.serialize()
+
     def __delitem__(self, key):
         """Delete resource from collection """
         self._debug("__delitem__", key)
@@ -563,6 +715,12 @@ Returns a generator to iterate over all matching github resources.
             raise ValueError("Couldn't delete {} object: {}"
                              .format(self.child_class.__name__,
                                      req.json()["message"]))
+
+        try:
+            super(GhCollection, self).__delitem__(key)
+            self.serialize()
+        except KeyError:
+            pass
 
 
 class cache(tpv.generic.cache):
