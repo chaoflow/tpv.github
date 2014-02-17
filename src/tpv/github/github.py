@@ -389,7 +389,7 @@ class GhUsers(GhCollection):
     get_url_template = "/users/{user}"
 
 
-@cache(node_class=GhBase)
+#@cache(node_class=GhBase)
 @classtree.instantiate
 class Github(GhBase, classtree.Base):
     _parameters = dict()
